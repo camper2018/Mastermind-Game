@@ -1,0 +1,28 @@
+{
+  "name": "mastermind",
+  "version": "1.0.0",
+  "description": "Mastermind game",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "dev": "parcel index.html",
+    "build": "parcel build index.html"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/camper2018/Mastermind-Game.git"
+  },
+  "keywords": [],
+  "author": "Tania Ali",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/camper2018/Mastermind-Game/issues"
+  },
+  "homepage": "https://github.com/camper2018/Mastermind-Game#readme",
+  "dependencies": {
+    "axios": "^0.21.1"
+  },
+  "devDependencies": {
+    "parcel-bundler": "^1.12.5"
+  }
+}
