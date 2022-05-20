@@ -47,7 +47,21 @@ const getPlacementsCount = (str) => {
   }
   return nums;
 };
-const initGame = () => {};
+const initGame = () => {
+  const columnIds = [
+    "r1c1",
+    "r1c2",
+    "r2c1",
+    "r2c2",
+    "r3c1",
+    "r3c2",
+    "r4c1",
+    "r4c2",
+    "r5c1",
+    "r5c2",
+  ];
+  let attemptCount = 0;
+};
 
 $(document).ready(() => {
   generateRandomSequence(4, 7);

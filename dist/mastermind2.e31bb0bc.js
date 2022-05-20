@@ -2754,7 +2754,10 @@ var getPlacementsCount = function getPlacementsCount(str) {
   return nums;
 };
 
-var initGame = function initGame() {};
+var initGame = function initGame() {
+  var columnIds = ["r1c1", "r1c2", "r2c1", "r2c2", "r3c1", "r3c2", "r4c1", "r4c2", "r5c1", "r5c2"];
+  var attemptCount = 0;
+};
 
 $(document).ready(function () {
   generateRandomSequence(4, 7);
@@ -2787,7 +2790,7 @@ var parent = module.bundle.parent;
 if ((!parent || !parent.isParcelRequire) && typeof WebSocket !== 'undefined') {
   var hostname = "" || location.hostname;
   var protocol = location.protocol === 'https:' ? 'wss' : 'ws';
-  var ws = new WebSocket(protocol + '://' + hostname + ':' + "59439" + '/');
+  var ws = new WebSocket(protocol + '://' + hostname + ':' + "55342" + '/');
 
   ws.onmessage = function (event) {
     checkedAssets = {};
