@@ -3,7 +3,7 @@ import "regenerator-runtime/runtime";
 import axios from "axios";
 
 const globalStore = (function initGame() {
-  let gameDifficulty = "medium";
+  let gameDifficulty = "easy";
   let numericSecret;
   let attemptCount = 0;
   let colorInputCount = 0;
@@ -145,13 +145,12 @@ function handleInput(event) {
   }
 }
 function checkForFeedback(sequence, enteredSequence) {
-  const feedback = enteredSequence.map((val, i) => {
+  let feedback = ["&nbsp;"];
+  enteredSequence.forEach((val, i) => {
     if (val === sequence[i]) {
-      return `👍`;
+      feedback.push(`🔴&nbsp;`);
     } else if (sequence.includes(val)) {
-      return `🧐`;
-    } else {
-      return `👎`;
+      feedback.push(`⚪&nbsp; `);
     }
   });
   return feedback;
@@ -180,7 +179,7 @@ function handleCheck(secret, target) {
 
   if (
     target.id === id &&
-    globalStore.colorInputCount === globalStore.sequenceLength
+    globalStore.colorInputCount === globalStore.selectedColors.length
   ) {
     $($(target)).prop("disabled", true);
 
@@ -188,23 +187,25 @@ function handleCheck(secret, target) {
     const feedback = checkForFeedback(secret, globalStore.selectedColors);
     globalStore.feedbacks.push(feedback);
 
-    // Add feedback emoticons after each attempt.
-    let divId = globalStore.columnIds[globalStore.attemptCount];
-    $(`#${divId}`)
-      .children()
-      .each((i, child) => {
-        $(child)
-          .children()
-          .each((i, colorDiv) => {
-            let $feedback = $(`<center><h1>${feedback[i]}</h1></center>`);
-            $(colorDiv).append($feedback);
-          });
-      });
-    if (globalStore.attemptCount < 10) {
+    // let divId = globalStore.columnIds[globalStore.attemptCount];
+    $($(target)).html(feedback);
+
+    // check for win
+    function checkForMatch(selectedSequence, code) {
+      return selectedSequence.every((color, i) => color === code[i]);
+    }
+    let isDecoded = checkForMatch(globalStore.selectedColors, secret);
+    if (globalStore.attemptCount < 9 && !isDecoded) {
       globalStore.attemptCount++;
       globalStore.colorInputCount = 0;
+      globalStore.selectedColors = [];
+    } else if (isDecoded) {
+      alert("You win!");
+      // replace hint button text with replay
+      // replace hint button handler with anchor tag to start page.
     } else {
-      // game over
+      alert("Sorry! Try Again.");
+      // lose
     }
   }
 }
@@ -226,3 +227,10 @@ function restart() {
   // change hint to play again
   // reset all global variables.
 }
+// apply tooltip
+// display result
+//restart button
+// implement time
+// implement options button that leads to form
+// for querying extensions.
+// remove click from parent of buttons

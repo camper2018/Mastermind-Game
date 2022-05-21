@@ -2693,7 +2693,7 @@ function asyncGeneratorStep(gen, resolve, reject, _next, _throw, key, arg) { try
 function _asyncToGenerator(fn) { return function () { var self = this, args = arguments; return new Promise(function (resolve, reject) { var gen = fn.apply(self, args); function _next(value) { asyncGeneratorStep(gen, resolve, reject, _next, _throw, "next", value); } function _throw(err) { asyncGeneratorStep(gen, resolve, reject, _next, _throw, "throw", err); } _next(undefined); }); }; }
 
 var globalStore = function initGame() {
-  var gameDifficulty = "medium";
+  var gameDifficulty = "easy";
   var numericSecret;
   var attemptCount = 0;
   var colorInputCount = 0;
@@ -2841,13 +2841,12 @@ function handleInput(event) {
 }
 
 function checkForFeedback(sequence, enteredSequence) {
-  var feedback = enteredSequence.map(function (val, i) {
+  var feedback = ["&nbsp;"];
+  enteredSequence.forEach(function (val, i) {
     if (val === sequence[i]) {
-      return "\uD83D\uDC4D";
+      feedback.push("\uD83D\uDD34&nbsp;");
     } else if (sequence.includes(val)) {
-      return "\uD83E\uDDD0";
-    } else {
-      return "\uD83D\uDC4E";
+      feedback.push("\u26AA&nbsp; ");
     }
   });
   return feedback;
@@ -2876,24 +2875,31 @@ $(document).ready(function () {
 function handleCheck(secret, target) {
   var id = "check-".concat(globalStore.columnIds[globalStore.attemptCount]);
 
-  if (target.id === id && globalStore.colorInputCount === globalStore.sequenceLength) {
+  if (target.id === id && globalStore.colorInputCount === globalStore.selectedColors.length) {
+    // check for win
+    var checkForMatch = function checkForMatch(selectedSequence, code) {
+      return selectedSequence.every(function (color, i) {
+        return color === code[i];
+      });
+    };
+
     $($(target)).prop("disabled", true); // displayFeedback
 
     var feedback = checkForFeedback(secret, globalStore.selectedColors);
-    globalStore.feedbacks.push(feedback); // Add feedback emoticons after each attempt.
+    globalStore.feedbacks.push(feedback); // let divId = globalStore.columnIds[globalStore.attemptCount];
 
-    var divId = globalStore.columnIds[globalStore.attemptCount];
-    $("#".concat(divId)).children().each(function (i, child) {
-      $(child).children().each(function (i, colorDiv) {
-        var $feedback = $("<center><h1>".concat(feedback[i], "</h1></center>"));
-        $(colorDiv).append($feedback);
-      });
-    });
+    $($(target)).html(feedback);
+    var isDecoded = checkForMatch(globalStore.selectedColors, secret);
 
-    if (globalStore.attemptCount < 10) {
+    if (globalStore.attemptCount < 9 && !isDecoded) {
       globalStore.attemptCount++;
       globalStore.colorInputCount = 0;
-    } else {// game over
+      globalStore.selectedColors = [];
+    } else if (isDecoded) {
+      alert("You win!"); // replace hint button text with replay
+      // replace hint button handler with anchor tag to start page.
+    } else {
+      alert("Sorry! Try Again."); // lose
     }
   }
 }
@@ -2914,7 +2920,13 @@ function displayResult() {// alert or another page to show score or win or loose
 
 function restart() {// change hint to play again
   // reset all global variables.
-}
+} // apply tooltip
+// display result
+//restart button
+// implement time
+// implement options button that leads to form
+// for querying extensions.
+// remove click from parent of buttons
 },{"regenerator-runtime/runtime":"node_modules/regenerator-runtime/runtime.js","axios":"node_modules/axios/index.js"}],"node_modules/parcel-bundler/src/builtins/hmr-runtime.js":[function(require,module,exports) {
 var global = arguments[3];
 var OVERLAY_ID = '__parcel__error__overlay__';
