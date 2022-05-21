@@ -11,7 +11,7 @@ const globalStore = (function initGame() {
   const feedbacks = [];
   let gameover = false;
   let duplicatesAllowed = false;
-  let sequenceLength = getPlacementsCount(gameDifficulty).length;
+  let sequenceLength = renderPlacements(gameDifficulty).length;
   const columnIds = [
     "r1c1",
     "r1c2",
@@ -38,11 +38,11 @@ const globalStore = (function initGame() {
     duplicatesAllowed,
   };
 })();
-// globalStore.sequenceLength = getPlacementsCount(
+// globalStore.sequenceLength = renderPlacements(
 //   globalStore.gameDifficulty
 // ).length;
-// let sequenceLength = getPlacementsCount(globalStore.gameDifficulty).length;
-function getPlacementsCount(difficulty) {
+// let sequenceLength = renderPlacements(globalStore.gameDifficulty).length;
+function renderPlacements(difficulty) {
   let nums = [];
   let num = 0;
   if (difficulty.toLowerCase() === "easy") {
@@ -117,7 +117,7 @@ async function generateRandomSequence(num, max) {
 function setGameDifficulty(difficulty) {
   // takes string argument
 
-  let secretLength = getPlacementsCount(difficulty);
+  let secretLength = renderPlacements(difficulty);
   globalStore.columnIds.forEach((id, i) => {
     let colsPerAttempt = [];
     secretLength.forEach((num, i) => {
@@ -154,7 +154,10 @@ function createInputButtons() {
   $(`.input-btns-container`).append(btnArray);
 
   $(`.input-btns-container`).on("click", function (e) {
-    handleInput(e);
+    if ($($(e.target)).text() === "Press") {
+      console.log($($(e.target)).text());
+      handleInput(e);
+    }
   });
 }
 function handleInput(event) {

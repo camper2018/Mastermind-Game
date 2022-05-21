@@ -2713,7 +2713,7 @@ var globalStore = function initGame() {
   var feedbacks = [];
   var gameover = false;
   var duplicatesAllowed = false;
-  var sequenceLength = getPlacementsCount(gameDifficulty).length;
+  var sequenceLength = renderPlacements(gameDifficulty).length;
   var columnIds = ["r1c1", "r1c2", "r2c1", "r2c2", "r3c1", "r3c2", "r4c1", "r4c2", "r5c1", "r5c2"];
   return {
     columnIds: columnIds,
@@ -2727,13 +2727,13 @@ var globalStore = function initGame() {
     sequenceLength: sequenceLength,
     duplicatesAllowed: duplicatesAllowed
   };
-}(); // globalStore.sequenceLength = getPlacementsCount(
+}(); // globalStore.sequenceLength = renderPlacements(
 //   globalStore.gameDifficulty
 // ).length;
-// let sequenceLength = getPlacementsCount(globalStore.gameDifficulty).length;
+// let sequenceLength = renderPlacements(globalStore.gameDifficulty).length;
 
 
-function getPlacementsCount(difficulty) {
+function renderPlacements(difficulty) {
   var nums = [];
   var num = 0;
 
@@ -2881,7 +2881,7 @@ function _generateRandomSequence() {
 
 function setGameDifficulty(difficulty) {
   // takes string argument
-  var secretLength = getPlacementsCount(difficulty);
+  var secretLength = renderPlacements(difficulty);
   globalStore.columnIds.forEach(function (id, i) {
     var colsPerAttempt = [];
     secretLength.forEach(function (num, i) {
@@ -2906,7 +2906,10 @@ function createInputButtons() {
   });
   $(".input-btns-container").append(btnArray);
   $(".input-btns-container").on("click", function (e) {
-    handleInput(e);
+    if ($($(e.target)).text() === "Press") {
+      console.log($($(e.target)).text());
+      handleInput(e);
+    }
   });
 }
 
