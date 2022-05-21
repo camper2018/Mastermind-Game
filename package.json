@@ -20,7 +20,9 @@
   },
   "homepage": "https://github.com/camper2018/Mastermind-Game#readme",
   "dependencies": {
-    "axios": "^0.21.1"
+    "axios": "^0.21.1",
+    "jquery": "^3.6.0",
+    "jsdom": "^19.0.0"
   },
   "devDependencies": {
     "parcel-bundler": "^1.12.5"

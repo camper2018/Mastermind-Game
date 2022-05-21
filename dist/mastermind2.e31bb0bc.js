@@ -2691,76 +2691,214 @@ function asyncGeneratorStep(gen, resolve, reject, _next, _throw, key, arg) { try
 
 function _asyncToGenerator(fn) { return function () { var self = this, args = arguments; return new Promise(function (resolve, reject) { var gen = fn.apply(self, args); function _next(value) { asyncGeneratorStep(gen, resolve, reject, _next, _throw, "next", value); } function _throw(err) { asyncGeneratorStep(gen, resolve, reject, _next, _throw, "throw", err); } _next(undefined); }); }; }
 
-var getRandomColorSequence = function getRandomColorSequence(sequence) {
-  var colors = ["#ff0000ff", "#ff9900ff", "#ffff00ff", "#6aa84fff", "#0000ffff", "#9900ffff", "#ff00ffff", "#85200cff"];
-  var colorSequence = sequence.map(function (number, i) {
-    return colors[Number(number)];
-  });
-  return colorSequence;
-};
+var globalStore = function initGame() {
+  var gameDifficulty = "hard";
+  var numericSecret;
+  var attemptCount = 0;
+  var colorInputCount = 0;
+  var selectedColors = [];
+  var feedbacks = [];
+  var columnIds = ["r1c1", "r1c2", "r2c1", "r2c2", "r3c1", "r3c2", "r4c1", "r4c2", "r5c1", "r5c2"];
+  var sequenceLength = getPlacementsCount(gameDifficulty).length;
 
-var generateRandomSequence = /*#__PURE__*/function () {
-  var _ref = _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee(num, max) {
-    var response, randomSequence;
-    return _regeneratorRuntime().wrap(function _callee$(_context) {
-      while (1) {
-        switch (_context.prev = _context.next) {
-          case 0:
-            _context.prev = 0;
-            _context.next = 3;
-            return _axios.default.get("https://www.random.org/integers/?num=".concat(num, "&min=0&max=").concat(max, "&col=1&base=10&format=plain&rnd=new"));
+  function getPlacementsCount(difficulty) {
+    var nums = [];
+    var num = 0;
 
-          case 3:
-            response = _context.sent;
-            randomSequence = response.data;
-            console.log(randomSequence);
-            return _context.abrupt("return", randomSequence);
+    if (difficulty.toLowerCase() === "easy") {
+      num = 3;
+    } else if (difficulty.toLowerCase() === "medium") {
+      num = 4;
+    } else if (difficulty.toLowerCase() === "hard") {
+      num = 5;
+    }
 
-          case 9:
-            _context.prev = 9;
-            _context.t0 = _context["catch"](0);
-            console.error(_context.t0);
+    while (num >= 0) {
+      nums.push(num);
+      num--;
+    }
 
-          case 12:
-          case "end":
-            return _context.stop();
+    return nums;
+  }
+
+  function getRandomColorSequence(sequence) {
+    var colors = ["#ff0000ff", "#ff9900ff", "#ffff00ff", "#6aa84fff", "#0000ffff", "#9900ffff", "#ff00ffff", "#85200cff"];
+    console.log("sequence:", sequence);
+    var colorSequence = sequence.map(function (number, i) {
+      return colors[Number(number)];
+    });
+    return colorSequence;
+  }
+
+  var generateRandomSequence = /*#__PURE__*/function () {
+    var _ref = _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee(num, max) {
+      var response, randomSequence, sequence, colorSequence;
+      return _regeneratorRuntime().wrap(function _callee$(_context) {
+        while (1) {
+          switch (_context.prev = _context.next) {
+            case 0:
+              _context.prev = 0;
+              _context.next = 3;
+              return _axios.default.get("https://www.random.org/integers/?num=".concat(num, "&min=0&max=").concat(max, "&col=1&base=10&format=plain&rnd=new"));
+
+            case 3:
+              response = _context.sent;
+              randomSequence = response.data;
+              _context.next = 7;
+              return randomSequence.trim().split("\n");
+
+            case 7:
+              sequence = _context.sent;
+              _context.next = 10;
+              return getRandomColorSequence(sequence);
+
+            case 10:
+              colorSequence = _context.sent;
+              // return randomSequence;
+              console.log(colorSequence);
+              _context.next = 14;
+              return colorSequence;
+
+            case 14:
+              return _context.abrupt("return", _context.sent);
+
+            case 17:
+              _context.prev = 17;
+              _context.t0 = _context["catch"](0);
+              console.error(_context.t0);
+
+            case 20:
+            case "end":
+              return _context.stop();
+          }
         }
-      }
-    }, _callee, null, [[0, 9]]);
-  }));
+      }, _callee, null, [[0, 17]]);
+    }));
 
-  return function generateRandomSequence(_x, _x2) {
-    return _ref.apply(this, arguments);
+    return function generateRandomSequence(_x, _x2) {
+      return _ref.apply(this, arguments);
+    };
+  }();
+
+  function setGameDifficulty(difficulty) {
+    // takes string argument
+    var secretLength = getPlacementsCount(difficulty);
+    columnIds.forEach(function (id, i) {
+      var colsPerAttempt = [];
+      secretLength.forEach(function (num, i) {
+        var divId = id + i;
+        var $div = $("<div class=\"color-cell\" id=".concat(divId, ">"));
+        colsPerAttempt.push($div);
+      });
+      var $button = $("<button id=\"check-".concat(id, "\" class=\"check-btn\">Check</button>"));
+      colsPerAttempt.push($button);
+      var $container = $("<div class=\"color-cell-container\">");
+      $container.append(colsPerAttempt);
+      $("#".concat(id)).append($container);
+      colsPerAttempt = [];
+    });
+  }
+
+  function createInputButtons() {
+    var colors = ["#ff0000ff", "#ff9900ff", "#ffff00ff", "#6aa84fff", "#0000ffff", "#9900ffff", "#ff00ffff", "#85200cff"];
+    var btnArray = [];
+    colors.forEach(function (color, i) {
+      var $button = $("<button id=".concat(color, " class=\"color-btns border rounded-circle border-2 d-flex justify-content-center align-items-center\">Press</button>"));
+      $($button).css("background-color", color);
+      btnArray.push($button);
+    });
+    $(".input-btns-container").append(btnArray);
+    $(".input-btns-container").on("click", function (e) {
+      handleInput(e);
+    });
+  }
+
+  function handleInput(event) {
+    if (colorInputCount < sequenceLength) {
+      var selectedColor = event.target.id;
+      var colorPlacementId = columnIds[attemptCount];
+      var placementId = colorPlacementId + colorInputCount;
+      $("#".concat(placementId)).css("background-color", selectedColor);
+      colorInputCount++;
+      selectedColors.push(selectedColor);
+    }
+  }
+
+  function handleCheck(secret, target) {
+    // $($(target)).prop("disabled", true);
+    $($(target)).css("display", "none"); // checkForFeedback
+    // function checkForFeedback(sequence, enteredSequence) {
+    //   const feedback = {};
+    //   const matched = enteredSequence.filter(
+    //     (color, i) => color === sequence[i]
+    //   );
+    //   const mispositioned = enteredSequence.filter((color, i) =>
+    //     sequence.includes(color)
+    //   );
+    //   feedback.matched = matched;
+    //   feedback.mispositioned = mispositioned;
+    //   return feedback;
+    // }
+
+    function checkForFeedback(sequence, enteredSequence) {
+      var feedback = enteredSequence.map(function (val, i) {
+        if (val === sequence[i]) {
+          return "\uD83D\uDC4D";
+        } else if (sequence.includes(val)) {
+          return "\uD83E\uDDD0";
+        } else {
+          return "\uD83D\uDC4E";
+        }
+      });
+      return feedback;
+    } // displayFeedback
+
+
+    var feedback = checkForFeedback(secret, selectedColors);
+    globalStore.feedbacks.push(feedback);
+    var divId = columnIds[attemptCount];
+    $("#".concat(divId)).children().each(function (i, child) {
+      $(child).children().each(function (i, colorDiv) {
+        $(colorDiv).text(feedback[i]);
+      });
+    });
+    attemptCount++;
+    colorInputCount = 0;
+  }
+
+  return {
+    columnIds: columnIds,
+    attemptCount: attemptCount,
+    sequenceLength: sequenceLength,
+    colorInputCount: colorInputCount,
+    gameDifficulty: gameDifficulty,
+    numericSecret: numericSecret,
+    feedbacks: feedbacks,
+    getRandomColorSequence: getRandomColorSequence,
+    generateRandomSequence: generateRandomSequence,
+    getPlacementsCount: getPlacementsCount,
+    setGameDifficulty: setGameDifficulty,
+    createInputButtons: createInputButtons,
+    handleInput: handleInput,
+    handleCheck: handleCheck
   };
 }();
 
-var getPlacementsCount = function getPlacementsCount(str) {
-  var nums = [];
-  var num = 0;
-
-  if (str.toLowerCase() === "easy") {
-    num = 3;
-  } else if (str.toLowerCase() === "medium") {
-    num = 4;
-  } else if (str.toLowerCase() === "hard") {
-    num = 5;
-  }
-
-  while (num > 0) {
-    nums.push(num);
-    num--;
-  }
-
-  return nums;
-};
-
-var initGame = function initGame() {
-  var columnIds = ["r1c1", "r1c2", "r2c1", "r2c2", "r3c1", "r3c2", "r4c1", "r4c2", "r5c1", "r5c2"];
-  var attemptCount = 0;
-};
-
 $(document).ready(function () {
-  generateRandomSequence(4, 7);
+  globalStore.generateRandomSequence(4, 7).then(function (secret) {
+    // create positions for code in each column based on difficulty
+    globalStore.setGameDifficulty("easy"); // create colored buttons dynamically
+
+    globalStore.createInputButtons(); // while (globalStore.attemptCount <= 10) {
+
+    var checkId = globalStore.columnIds[globalStore.attemptCount];
+    console.log(checkId);
+    $("#check-".concat(checkId)).on("click", function (e) {
+      var target = e.target;
+      globalStore.handleCheck(secret, target, counter);
+      console.log(globalStore.attemptCount);
+    }); // }
+  });
 });
 },{"regenerator-runtime/runtime":"node_modules/regenerator-runtime/runtime.js","axios":"node_modules/axios/index.js"}],"node_modules/parcel-bundler/src/builtins/hmr-runtime.js":[function(require,module,exports) {
 var global = arguments[3];
@@ -2790,7 +2928,7 @@ var parent = module.bundle.parent;
 if ((!parent || !parent.isParcelRequire) && typeof WebSocket !== 'undefined') {
   var hostname = "" || location.hostname;
   var protocol = location.protocol === 'https:' ? 'wss' : 'ws';
-  var ws = new WebSocket(protocol + '://' + hostname + ':' + "55342" + '/');
+  var ws = new WebSocket(protocol + '://' + hostname + ':' + "52528" + '/');
 
   ws.onmessage = function (event) {
     checkedAssets = {};

@@ -72,7 +72,7 @@
 }
 .hint-btn {
   border-radius: 15px;
-  border: 2px solid white;
+  border: 3px solid white;
   color: white;
   font-weight: bold;
   font-size: 1.5em;
@@ -82,6 +82,48 @@
   height: 100%;
   padding: 0px;
 }
+.color-cell {
+  height: 80%;
+  width: 70px;
+  border: 1px solid black;
+  background-color: white;
+  border-radius: 5%;
+  margin: 5px 5px;
+}
+.color-cell-container {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-around;
+  align-items: center;
+  height: 100%;
+}
+.check-btn {
+  height: 35px;
+  padding: 2;
+  background-color: #007bff;
+  color: white;
+}
+.check-btn:hover {
+  background-color: silver;
+  color: black;
+}
+.feedback-container {
+  margin: 3px 5px 5px 0px;
+  height: 10vh;
+  background-color: #78909cff;
+  border: 3px solid white;
+}
+.color-btns {
+  display: flex;
+  width: 8%;
+  height: 70px;
+  font-size: 10px;
+  font-weight: bold;
+}
+.color-btns:hover {
+  opacity: 0.5;
+}
+
 /* ********************************* */
 /* @media (min-width: 576px) {  }
 
