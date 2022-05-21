@@ -43,11 +43,12 @@
 }
 .rows {
   height: 12%;
+  height: 10%;
   margin: 0 5px;
 }
 .columns {
   border: 2px solid white;
-  margin-top: 5px;
+  /* margin-top: 5px; */
   background-color: #78909cff;
 }
 .btns-row {
@@ -88,7 +89,8 @@
   border: 1px solid black;
   background-color: white;
   border-radius: 5%;
-  margin: 5px 5px;
+  /* margin: 5px 5px; */
+  margin: 0px 5px 0px 5px;
 }
 .color-cell-container {
   display: flex;
@@ -106,6 +108,9 @@
 .check-btn:hover {
   background-color: silver;
   color: black;
+}
+.check-btn:disabled {
+  background-color: orange;
 }
 .feedback-container {
   margin: 3px 5px 5px 0px;

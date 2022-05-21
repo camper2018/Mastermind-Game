@@ -2675,6 +2675,7 @@ module.exports.default = axios;
 },{"./utils":"node_modules/axios/lib/utils.js","./helpers/bind":"node_modules/axios/lib/helpers/bind.js","./core/Axios":"node_modules/axios/lib/core/Axios.js","./core/mergeConfig":"node_modules/axios/lib/core/mergeConfig.js","./defaults":"node_modules/axios/lib/defaults.js","./cancel/Cancel":"node_modules/axios/lib/cancel/Cancel.js","./cancel/CancelToken":"node_modules/axios/lib/cancel/CancelToken.js","./cancel/isCancel":"node_modules/axios/lib/cancel/isCancel.js","./helpers/spread":"node_modules/axios/lib/helpers/spread.js","./helpers/isAxiosError":"node_modules/axios/lib/helpers/isAxiosError.js"}],"node_modules/axios/index.js":[function(require,module,exports) {
 module.exports = require('./lib/axios');
 },{"./lib/axios":"node_modules/axios/lib/axios.js"}],"index.js":[function(require,module,exports) {
+var define;
 "use strict";
 
 require("regenerator-runtime/runtime");
@@ -2692,214 +2693,228 @@ function asyncGeneratorStep(gen, resolve, reject, _next, _throw, key, arg) { try
 function _asyncToGenerator(fn) { return function () { var self = this, args = arguments; return new Promise(function (resolve, reject) { var gen = fn.apply(self, args); function _next(value) { asyncGeneratorStep(gen, resolve, reject, _next, _throw, "next", value); } function _throw(err) { asyncGeneratorStep(gen, resolve, reject, _next, _throw, "throw", err); } _next(undefined); }); }; }
 
 var globalStore = function initGame() {
-  var gameDifficulty = "hard";
+  var gameDifficulty = "medium";
   var numericSecret;
   var attemptCount = 0;
   var colorInputCount = 0;
   var selectedColors = [];
   var feedbacks = [];
-  var columnIds = ["r1c1", "r1c2", "r2c1", "r2c2", "r3c1", "r3c2", "r4c1", "r4c2", "r5c1", "r5c2"];
+  var gameover = false;
   var sequenceLength = getPlacementsCount(gameDifficulty).length;
-
-  function getPlacementsCount(difficulty) {
-    var nums = [];
-    var num = 0;
-
-    if (difficulty.toLowerCase() === "easy") {
-      num = 3;
-    } else if (difficulty.toLowerCase() === "medium") {
-      num = 4;
-    } else if (difficulty.toLowerCase() === "hard") {
-      num = 5;
-    }
-
-    while (num >= 0) {
-      nums.push(num);
-      num--;
-    }
-
-    return nums;
-  }
-
-  function getRandomColorSequence(sequence) {
-    var colors = ["#ff0000ff", "#ff9900ff", "#ffff00ff", "#6aa84fff", "#0000ffff", "#9900ffff", "#ff00ffff", "#85200cff"];
-    console.log("sequence:", sequence);
-    var colorSequence = sequence.map(function (number, i) {
-      return colors[Number(number)];
-    });
-    return colorSequence;
-  }
-
-  var generateRandomSequence = /*#__PURE__*/function () {
-    var _ref = _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee(num, max) {
-      var response, randomSequence, sequence, colorSequence;
-      return _regeneratorRuntime().wrap(function _callee$(_context) {
-        while (1) {
-          switch (_context.prev = _context.next) {
-            case 0:
-              _context.prev = 0;
-              _context.next = 3;
-              return _axios.default.get("https://www.random.org/integers/?num=".concat(num, "&min=0&max=").concat(max, "&col=1&base=10&format=plain&rnd=new"));
-
-            case 3:
-              response = _context.sent;
-              randomSequence = response.data;
-              _context.next = 7;
-              return randomSequence.trim().split("\n");
-
-            case 7:
-              sequence = _context.sent;
-              _context.next = 10;
-              return getRandomColorSequence(sequence);
-
-            case 10:
-              colorSequence = _context.sent;
-              // return randomSequence;
-              console.log(colorSequence);
-              _context.next = 14;
-              return colorSequence;
-
-            case 14:
-              return _context.abrupt("return", _context.sent);
-
-            case 17:
-              _context.prev = 17;
-              _context.t0 = _context["catch"](0);
-              console.error(_context.t0);
-
-            case 20:
-            case "end":
-              return _context.stop();
-          }
-        }
-      }, _callee, null, [[0, 17]]);
-    }));
-
-    return function generateRandomSequence(_x, _x2) {
-      return _ref.apply(this, arguments);
-    };
-  }();
-
-  function setGameDifficulty(difficulty) {
-    // takes string argument
-    var secretLength = getPlacementsCount(difficulty);
-    columnIds.forEach(function (id, i) {
-      var colsPerAttempt = [];
-      secretLength.forEach(function (num, i) {
-        var divId = id + i;
-        var $div = $("<div class=\"color-cell\" id=".concat(divId, ">"));
-        colsPerAttempt.push($div);
-      });
-      var $button = $("<button id=\"check-".concat(id, "\" class=\"check-btn\">Check</button>"));
-      colsPerAttempt.push($button);
-      var $container = $("<div class=\"color-cell-container\">");
-      $container.append(colsPerAttempt);
-      $("#".concat(id)).append($container);
-      colsPerAttempt = [];
-    });
-  }
-
-  function createInputButtons() {
-    var colors = ["#ff0000ff", "#ff9900ff", "#ffff00ff", "#6aa84fff", "#0000ffff", "#9900ffff", "#ff00ffff", "#85200cff"];
-    var btnArray = [];
-    colors.forEach(function (color, i) {
-      var $button = $("<button id=".concat(color, " class=\"color-btns border rounded-circle border-2 d-flex justify-content-center align-items-center\">Press</button>"));
-      $($button).css("background-color", color);
-      btnArray.push($button);
-    });
-    $(".input-btns-container").append(btnArray);
-    $(".input-btns-container").on("click", function (e) {
-      handleInput(e);
-    });
-  }
-
-  function handleInput(event) {
-    if (colorInputCount < sequenceLength) {
-      var selectedColor = event.target.id;
-      var colorPlacementId = columnIds[attemptCount];
-      var placementId = colorPlacementId + colorInputCount;
-      $("#".concat(placementId)).css("background-color", selectedColor);
-      colorInputCount++;
-      selectedColors.push(selectedColor);
-    }
-  }
-
-  function handleCheck(secret, target) {
-    // $($(target)).prop("disabled", true);
-    $($(target)).css("display", "none"); // checkForFeedback
-    // function checkForFeedback(sequence, enteredSequence) {
-    //   const feedback = {};
-    //   const matched = enteredSequence.filter(
-    //     (color, i) => color === sequence[i]
-    //   );
-    //   const mispositioned = enteredSequence.filter((color, i) =>
-    //     sequence.includes(color)
-    //   );
-    //   feedback.matched = matched;
-    //   feedback.mispositioned = mispositioned;
-    //   return feedback;
-    // }
-
-    function checkForFeedback(sequence, enteredSequence) {
-      var feedback = enteredSequence.map(function (val, i) {
-        if (val === sequence[i]) {
-          return "\uD83D\uDC4D";
-        } else if (sequence.includes(val)) {
-          return "\uD83E\uDDD0";
-        } else {
-          return "\uD83D\uDC4E";
-        }
-      });
-      return feedback;
-    } // displayFeedback
-
-
-    var feedback = checkForFeedback(secret, selectedColors);
-    globalStore.feedbacks.push(feedback);
-    var divId = columnIds[attemptCount];
-    $("#".concat(divId)).children().each(function (i, child) {
-      $(child).children().each(function (i, colorDiv) {
-        $(colorDiv).text(feedback[i]);
-      });
-    });
-    attemptCount++;
-    colorInputCount = 0;
-  }
-
+  var columnIds = ["r1c1", "r1c2", "r2c1", "r2c2", "r3c1", "r3c2", "r4c1", "r4c2", "r5c1", "r5c2"];
   return {
     columnIds: columnIds,
     attemptCount: attemptCount,
-    sequenceLength: sequenceLength,
     colorInputCount: colorInputCount,
     gameDifficulty: gameDifficulty,
     numericSecret: numericSecret,
     feedbacks: feedbacks,
-    getRandomColorSequence: getRandomColorSequence,
-    generateRandomSequence: generateRandomSequence,
-    getPlacementsCount: getPlacementsCount,
-    setGameDifficulty: setGameDifficulty,
-    createInputButtons: createInputButtons,
-    handleInput: handleInput,
-    handleCheck: handleCheck
+    selectedColors: selectedColors,
+    gameover: gameover,
+    sequenceLength: sequenceLength
   };
-}();
+}(); // globalStore.sequenceLength = getPlacementsCount(
+//   globalStore.gameDifficulty
+// ).length;
+// let sequenceLength = getPlacementsCount(globalStore.gameDifficulty).length;
+
+
+function getPlacementsCount(difficulty) {
+  var nums = [];
+  var num = 0;
+
+  if (difficulty.toLowerCase() === "easy") {
+    num = 3;
+  } else if (difficulty.toLowerCase() === "medium") {
+    num = 4;
+  } else if (difficulty.toLowerCase() === "hard") {
+    num = 5;
+  }
+
+  while (num >= 0) {
+    nums.push(num);
+    num--;
+  }
+
+  return nums;
+}
+
+function getRandomColorSequence(sequence) {
+  var colors = ["#ff0000ff", "#ff9900ff", "#ffff00ff", "#6aa84fff", "#0000ffff", "#9900ffff", "#ff00ffff", "#85200cff"];
+  var colorSequence = sequence.map(function (number, i) {
+    return colors[Number(number)];
+  });
+  return colorSequence;
+}
+
+function generateRandomSequence(_x, _x2) {
+  return _generateRandomSequence.apply(this, arguments);
+}
+
+function _generateRandomSequence() {
+  _generateRandomSequence = _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee(num, max) {
+    var response, randomSequence, sequence, colorSequence;
+    return _regeneratorRuntime().wrap(function _callee$(_context) {
+      while (1) {
+        switch (_context.prev = _context.next) {
+          case 0:
+            _context.prev = 0;
+            _context.next = 3;
+            return _axios.default.get("https://www.random.org/integers/?num=".concat(num, "&min=0&max=").concat(max, "&col=1&base=10&format=plain&rnd=new"));
+
+          case 3:
+            response = _context.sent;
+            randomSequence = response.data;
+            _context.next = 7;
+            return randomSequence.trim().split("\n");
+
+          case 7:
+            sequence = _context.sent;
+            _context.next = 10;
+            return getRandomColorSequence(sequence);
+
+          case 10:
+            colorSequence = _context.sent;
+            // return randomSequence;
+            console.log(colorSequence);
+            _context.next = 14;
+            return colorSequence;
+
+          case 14:
+            return _context.abrupt("return", _context.sent);
+
+          case 17:
+            _context.prev = 17;
+            _context.t0 = _context["catch"](0);
+            console.error(_context.t0);
+
+          case 20:
+          case "end":
+            return _context.stop();
+        }
+      }
+    }, _callee, null, [[0, 17]]);
+  }));
+  return _generateRandomSequence.apply(this, arguments);
+}
+
+function setGameDifficulty(difficulty) {
+  // takes string argument
+  var secretLength = getPlacementsCount(difficulty);
+  globalStore.columnIds.forEach(function (id, i) {
+    var colsPerAttempt = [];
+    secretLength.forEach(function (num, i) {
+      var divId = id + i;
+      var $div = $("<div class=\"color-cell\" id=".concat(divId, ">"));
+      colsPerAttempt.push($div);
+    });
+    var $container = $("<div class=\"color-cell-container\">");
+    $container.append(colsPerAttempt);
+    $("#".concat(id)).append($container);
+    colsPerAttempt = [];
+  });
+}
+
+function createInputButtons() {
+  var colors = ["#ff0000ff", "#ff9900ff", "#ffff00ff", "#6aa84fff", "#0000ffff", "#9900ffff", "#ff00ffff", "#85200cff"];
+  var btnArray = [];
+  colors.forEach(function (color, i) {
+    var $button = $("<button id=".concat(color, " class=\"color-btns border rounded-circle border-2 d-flex justify-content-center align-items-center\">Press</button>"));
+    $($button).css("background-color", color);
+    btnArray.push($button);
+  });
+  $(".input-btns-container").append(btnArray);
+  $(".input-btns-container").on("click", function (e) {
+    handleInput(e);
+  });
+}
+
+function handleInput(event) {
+  if (globalStore.colorInputCount < globalStore.sequenceLength && globalStore.attemptCount < 10) {
+    var selectedColor = event.target.id;
+    var colorPlacementId = globalStore.columnIds[globalStore.attemptCount];
+    var placementId = colorPlacementId + globalStore.colorInputCount;
+    $("#".concat(placementId)).css("background-color", selectedColor);
+    globalStore.colorInputCount++;
+    globalStore.selectedColors.push(selectedColor);
+  }
+}
+
+function checkForFeedback(sequence, enteredSequence) {
+  var feedback = enteredSequence.map(function (val, i) {
+    if (val === sequence[i]) {
+      return "\uD83D\uDC4D";
+    } else if (sequence.includes(val)) {
+      return "\uD83E\uDDD0";
+    } else {
+      return "\uD83D\uDC4E";
+    }
+  });
+  return feedback;
+}
 
 $(document).ready(function () {
-  globalStore.generateRandomSequence(4, 7).then(function (secret) {
+  generateRandomSequence(4, 7).then(function (secret) {
     // create positions for code in each column based on difficulty
-    globalStore.setGameDifficulty("easy"); // create colored buttons dynamically
+    setGameDifficulty(globalStore.gameDifficulty); // create colored buttons dynamically
 
-    globalStore.createInputButtons(); // while (globalStore.attemptCount <= 10) {
+    createInputButtons(); // attach click handler to the check buttons
 
-    var checkId = globalStore.columnIds[globalStore.attemptCount];
-    console.log(checkId);
-    $("#check-".concat(checkId)).on("click", function (e) {
-      var target = e.target;
-      globalStore.handleCheck(secret, target, counter);
-      console.log(globalStore.attemptCount);
-    }); // }
+    var counter = 0;
+
+    while (counter < 10) {
+      var checkId = globalStore.columnIds[counter];
+      $("button#check-".concat(checkId)).on("click", function (e) {
+        console.log("e.target", e.target);
+        handleCheck(secret, e.target);
+      });
+      counter++;
+    }
   });
 });
+
+function handleCheck(secret, target) {
+  var id = "check-".concat(globalStore.columnIds[globalStore.attemptCount]);
+
+  if (target.id === id && globalStore.colorInputCount === globalStore.sequenceLength) {
+    $($(target)).prop("disabled", true); // displayFeedback
+
+    var feedback = checkForFeedback(secret, globalStore.selectedColors);
+    globalStore.feedbacks.push(feedback); // Add feedback emoticons after each attempt.
+
+    var divId = globalStore.columnIds[globalStore.attemptCount];
+    $("#".concat(divId)).children().each(function (i, child) {
+      $(child).children().each(function (i, colorDiv) {
+        var $feedback = $("<center><h1>".concat(feedback[i], "</h1></center>"));
+        $(colorDiv).append($feedback);
+      });
+    });
+
+    if (globalStore.attemptCount < 10) {
+      globalStore.attemptCount++;
+      globalStore.colorInputCount = 0;
+    } else {// game over
+    }
+  }
+}
+
+function calculateScore() {// based on number of attempts used
+  // based on number of hints used (optional)
+  // based on difficulty level
+  // based on time left
+}
+
+function displayResult() {// alert or another page to show score or win or loose status.
+  // 10 attempts used  or time finished ----loose.
+  // 8+ attempts used ---- you survived.
+  // 6+ attempts used ---- well played.
+  // 4+ attempts used ---- you are brilliant
+  // 2+ attempts used ---- you are super hero!
+}
+
+function restart() {// change hint to play again
+  // reset all global variables.
+}
 },{"regenerator-runtime/runtime":"node_modules/regenerator-runtime/runtime.js","axios":"node_modules/axios/index.js"}],"node_modules/parcel-bundler/src/builtins/hmr-runtime.js":[function(require,module,exports) {
 var global = arguments[3];
 var OVERLAY_ID = '__parcel__error__overlay__';
