@@ -10,6 +10,7 @@ const globalStore = (function initGame() {
   let selectedColors = [];
   const feedbacks = [];
   let gameover = false;
+  let duplicatesAllowed = false;
   let sequenceLength = getPlacementsCount(gameDifficulty).length;
   const columnIds = [
     "r1c1",
@@ -34,6 +35,7 @@ const globalStore = (function initGame() {
     selectedColors,
     gameover,
     sequenceLength,
+    duplicatesAllowed,
   };
 })();
 // globalStore.sequenceLength = getPlacementsCount(
@@ -73,19 +75,43 @@ function getRandomColorSequence(sequence) {
   return colorSequence;
 }
 async function generateRandomSequence(num, max) {
-  try {
-    const response = await axios.get(
-      `https://www.random.org/integers/?num=${num}&min=0&max=${max}&col=1&base=10&format=plain&rnd=new`
-    );
-
-    const randomSequence = response.data;
-    let sequence = await randomSequence.trim().split("\n");
-    const colorSequence = await getRandomColorSequence(sequence);
-    // return randomSequence;
-    console.log(colorSequence);
-    return await colorSequence;
-  } catch (errors) {
-    console.error(errors);
+  if (!globalStore.duplicatesAllowed) {
+    let isUnique = false;
+    try {
+      while (!isUnique) {
+        const response = await axios.get(
+          `https://www.random.org/integers/?num=${num}&min=0&max=${max}&col=1&base=10&format=plain&rnd=new`
+        );
+        const randomSequence = response.data;
+        let sequence = await randomSequence.trim().split("\n");
+        console.log(sequence);
+        let uniqueSequence = [...new Set(sequence)];
+        if (uniqueSequence.length === sequence.length) {
+          isUnique = true;
+          const colorSequence = await getRandomColorSequence(sequence);
+          // return randomSequence;
+          console.log(colorSequence);
+          return await colorSequence;
+        }
+      }
+    } catch (errors) {
+      console.error(errors);
+    }
+  } else {
+    try {
+      const response = await axios.get(
+        `https://www.random.org/integers/?num=${num}&min=0&max=${max}&col=1&base=10&format=plain&rnd=new`
+      );
+      const randomSequence = response.data;
+      let sequence = await randomSequence.trim().split("\n");
+      console.log(sequence);
+      const colorSequence = await getRandomColorSequence(sequence);
+      // return randomSequence;
+      console.log(colorSequence);
+      return await colorSequence;
+    } catch (errors) {
+      console.error(errors);
+    }
   }
 }
 function setGameDifficulty(difficulty) {
