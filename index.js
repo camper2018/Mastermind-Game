@@ -1,15 +1,17 @@
 // to allow async await using axios
-import "regenerator-runtime/runtime";
+// import "regenerator-runtime/runtime";
 import axios from "axios";
 
 const globalStore = (function initGame() {
+  // const initGame = () => {
   let gameDifficulty = "easy";
-
+  let hintsAllowed = false;
+  let gameMode = "singlePlayer";
+  let timer = "none";
   let attemptCount = 0;
   let colorInputCount = 0;
   let selectedColors = [];
   const feedbacks = [];
-  let gameover = false;
   let duplicatesAllowed = false;
   let sequenceLength = renderPlacements(gameDifficulty).length;
   const columnIds = [
@@ -29,18 +31,18 @@ const globalStore = (function initGame() {
     columnIds,
     attemptCount,
     colorInputCount,
-    gameDifficulty,
     feedbacks,
     selectedColors,
-    gameover,
+    gameDifficulty,
     sequenceLength,
     duplicatesAllowed,
+    hintsAllowed,
+    gameMode,
+    timer,
   };
 })();
-// globalStore.sequenceLength = renderPlacements(
-//   globalStore.gameDifficulty
-// ).length;
-// let sequenceLength = renderPlacements(globalStore.gameDifficulty).length;
+// };
+
 function renderPlacements(difficulty) {
   let nums = [];
   let num = 0;
@@ -129,7 +131,8 @@ function setGameDifficulty(difficulty) {
 
     let $container = $(`<div class="color-cell-container">`);
     $container.append(colsPerAttempt);
-    $(`#${id}`).append($container);
+    // $(`#${id}`).append($container);
+    $(`#${id}`).html($container);
     colsPerAttempt = [];
   });
 }
@@ -152,7 +155,7 @@ function createInputButtons() {
     $($button).css("background-color", color);
     btnArray.push($button);
   });
-  $(`.input-btns-container`).append(btnArray);
+  $(`.input-btns-container`).html(btnArray);
 
   $(`.input-btns-container`).on("click", function (e) {
     if ($($(e.target)).text() === "Press") {
@@ -215,7 +218,7 @@ function handleCheck(secret, target) {
       return selectedSequence.every((color, i) => color === code[i]);
     }
     let isDecoded = checkForMatch(globalStore.selectedColors, secret);
-    if (globalStore.attemptCount < 2 && !isDecoded) {
+    if (globalStore.attemptCount < 10 && !isDecoded) {
       console.log("inside attemptCount: ", globalStore.attemptCount);
       globalStore.attemptCount++;
       globalStore.colorInputCount = 0;
@@ -293,6 +296,8 @@ function checkForFeedback(sequence, enteredSequence) {
   return feedback;
 }
 function restartGame() {
+  $(`#bg-music`)[0].play();
+
   hideModal();
   globalStore.attemptCount = 0;
   globalStore.colorInputCount = 0;
@@ -319,6 +324,184 @@ function restartGame() {
       });
       counter++;
     }
+    $(`.settings-btn`).on("click", function (e) {
+      let $htmlContent = $(`<form id="modal-form">
+          <h6>Play Mode:</h6>
+          <input
+            type="radio"
+            class="btn-check"
+            name="gameMode"
+            id="two-player"
+            autocomplete="off"
+
+          />
+          <label class="btn btn-secondary" for="two-player"
+            >Player Vs Player</label
+          >
+          <input
+            type="radio"
+            class="btn-check"
+            name="gameMode"
+            id="singlePlayer"
+            autocomplete="off"
+            checked
+
+          />
+          <label class="btn btn-dark" for="singlePlayer"
+            >Player Vs Computer</label
+          >
+
+          <hr />
+          <h6>Duplicates:</h6>
+          <div class="form-check form-switch">
+            <input
+              class="form-check-input"
+              type="checkbox"
+              id="duplicatesAllowed"
+            />
+            <label class="form-check-label" for="duplicatesAllowed"
+              >Allow Duplicates</label
+            >
+          </div>
+          <hr />
+          <h6>Difficulty:</h6>
+          <input
+          type="radio"
+          class="btn-check"
+          name="difficulty"
+          id="easy"
+          autocomplete="off"
+          checked
+
+          />
+          <label class="btn btn-success" for="easy"
+            >Easy</label
+          >
+          <input
+            type="radio"
+            class="btn-check"
+            name="difficulty"
+            id="medium"
+            autocomplete="off"
+          />
+          <label class="btn btn-warning" for="medium"
+            >Medium</label
+          >
+          <input
+          type="radio"
+          class="btn-check"
+          name="difficulty"
+          id="hard"
+          autocomplete="off"
+        />
+        <label class="btn btn-danger" for="hard"
+          >Hard</label
+        >
+          <hr />
+          <h6>Time in Seconds:</h6>
+          <input
+          type="radio"
+          class="btn-check"
+          name="time"
+          id="none"
+          autocomplete="off"
+          checked
+
+        />
+        <label class="btn btn-success" for="none"
+          >No Time</label
+        >
+        <input
+          type="radio"
+          class="btn-check"
+          name="time"
+          id="250"
+          autocomplete="off"
+        />
+        <label class="btn btn-secondary" for="250"
+          >250</label
+        >
+        <input
+        type="radio"
+        class="btn-check"
+        name="time"
+        id="500"
+        autocomplete="off"
+      />
+      <label class="btn btn-warning" for="500"
+        >500</label
+      >
+        <input
+        type="radio"
+        class="btn-check"
+        name="time"
+        id="1000"
+        autocomplete="off"
+      />
+      <label class="btn btn-danger" for="1000"
+        >1000</label
+      >
+        <hr />
+        <h6>Allow Hints</h6>
+        <div class="form-check form-switch">
+          <input
+            class="form-check-input"
+            type="checkbox"
+            id="hintsAllowed"
+          />
+          <label class="form-check-label" for="hintsAllowed"
+            >Hints</label
+          >
+        </div>
+        <hr />
+        <button type="submit" class="btn btn-primary btn-submit">
+          Submit
+        </button>
+      </form>`);
+      $(".modal-body").html($htmlContent);
+      $(".modal-title").text("Game Settings");
+      $(".modal-footer").html($(`<div></div>`));
+      $(".modal").show();
+      $(".btn-submit").on("click", function (e) {
+        e.preventDefault();
+        let formData = $(`input[type="radio"].form-check`).val(jQuery(this));
+        $(`#modal-form input`).each((i, field) => {
+          if (field.checked) {
+            console.log(field.id);
+          }
+          if (field.id === "singlePlayer" || field.id === "twoPlayer") {
+            globalStore.gameMode = field.id;
+          }
+          if (
+            field.id === "easy" ||
+            field.id === "medium" ||
+            field.id === "hard"
+          ) {
+            globalStore.gameDifficulty = field.id;
+            if (field.id === "duplicatesAllowed") {
+              globalStore.duplicatesAllowed = true;
+            }
+            if (
+              field.id === "none" ||
+              field.id === "250" ||
+              field.id === "500" ||
+              field.id === "1000"
+            ) {
+              globalStore.timer = field.id;
+            }
+            if (field.id === "hintsAllowed") {
+              globalStore.hintsAllowed = true;
+            }
+            // restartGame();
+          }
+        });
+        // $(`#modal-form select`).each((i, field) => {
+        //   $(field).map((i, option) => {
+        //     console.log($(option).html());
+        //   });
+        // });
+      });
+    });
   });
 }
 
@@ -342,6 +525,8 @@ function showModal(text, html, btn1Text, btn2Text, btn1Handler, btn2Handler) {
 /************************ Game Starts Here *********************/
 // $(document).ready(() => {
 $(function () {
+  $(".myModal").hide();
+  // const globalStore = initGame();
   let instructions = `<p>The player tries to decode the code generated by computer or another player.<br>
   The code can be made up of any combination of the colored pegs.<br>
   Each guess is made by placing a row of Code pegs on the unit.<br>
@@ -355,15 +540,29 @@ $(function () {
     "GAME INSTRUCTIONS",
     instructions,
     "Play",
-    "Settings",
+    "Cancel",
     restartGame,
-    // hideModal
-    handleSettings
+    hideModal
+    // handleSettings
   );
-  function handleSettings() {
-    hideModal();
-    $(`.modal-settingds`).show();
-  }
+  // function handleSettings() {
+  //   hideModal();
+  // }
+  // let codeLength =
+  //   globalStore.gameDifficulty === "easy"
+  //     ? 4
+  //     : globalStore.gameDifficulty === "medium"
+  //     ? 5
+  //     : 6;
+  // $.get(
+  //   `https://www.random.org/integers/?num=${4}&min=0&max=${7}&col=1&base=10&format=plain&rnd=new`,
+  //   function (data) {
+  //     console.log(data);
+  //     generateRandomSequence(codeLength, 7).then((secret) => {
+  //       console.log(secret);
+  //     });
+  //   }
+  // );
   // let codeLength =
   //   globalStore.gameDifficulty === "easy"
   //     ? 4

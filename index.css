@@ -67,7 +67,7 @@
   background-color: #78909cff;
   margin-bottom: 10px;
 }
-.hint-btn-container {
+.settings-btn-container {
   /* height: 90%; */
   margin-top: 5px;
   display: flex;
@@ -75,7 +75,7 @@
   justify-content: center;
   margin-bottom: 10px;
 }
-.hint-btn {
+.settings-btn {
   border-radius: 15px;
   border: 3px solid white;
   color: white;
@@ -134,7 +134,16 @@
 .color-btns:hover {
   opacity: 0.5;
 }
-
+/* .myModal {
+  margin: 0 auto;
+  width: 60%;
+  height: 60%;
+  display: block;
+  position: absolute;
+  background-color: black;
+  color: white;
+  overflow: hidden;
+} */
 /* ********************************* */
 /* @media (min-width: 576px) {  }
 

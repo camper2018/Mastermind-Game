@@ -16,84 +16,16 @@
     />
 
     <link rel="stylesheet" href="index.css" />
+
+    <audio id="bg-music" src="./jeopardyMusic-128k.mp3"></audio>
   </head>
   <body>
-    <!-- <div class="modal-settings" tabindex="-1">
-      <div class="modal-dialog .modal-dialog-centered">
-        <div class="modal-content">
-          <div class="modal-header">
-            <h5 class="title-settings">GAME SETTINGS</h5>
-            <button
-              type="button"
-              class="btn-close-settings"
-              data-bs-dismiss="modal"
-              aria-label="Close"
-            ></button>
-          </div>
-          <div class="body-settings">
-            <form id="form">
-              <div class="mb-3">
-                <label for="exampleInputEmail1" class="form-label"
-                  >Email address</label
-                >
-                <input
-                  type="email"
-                  class="form-control"
-                  id="exampleInputEmail1"
-                  aria-describedby="emailHelp"
-                />
-                <div id="emailHelp" class="form-text">
-                  We'll never share your email with anyone else.
-                </div>
-              </div>
-              <div class="mb-3">
-                <label for="exampleInputPassword1" class="form-label"
-                  >Password</label
-                >
-                <input
-                  type="password"
-                  class="form-control"
-                  id="exampleInputPassword1"
-                />
-              </div>
-              <div class="mb-3 form-check">
-                <input
-                  type="checkbox"
-                  class="form-check-input"
-                  id="exampleCheck1"
-                />
-                <label class="form-check-label" for="exampleCheck1"
-                  >Check me out</label
-                >
-              </div>
-              <button type="submit" class="btn btn-primary">Submit</button>
-            </form>
-          </div>
-          <div class="modal-footer-settings">
-            <button
-              type="button"
-              class="btn btn-secondary btn-settings-close"
-              data-bs-dismiss="modal"
-            >
-              Close
-            </button>
-            <button
-              type="button"
-              class="btn btn-primary btn-settings-apply"
-              id="replay"
-            >
-              Replay
-            </button>
-          </div>
-        </div>
-      </div>
-    </div> -->
     <!-- *************************************** -->
     <div class="modal" tabindex="-1">
-      <div class="modal-dialog .modal-dialog-centered">
+      <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
           <div class="modal-header">
-            <h5 class="modal-title">YOU WIN!</h5>
+            <h5 class="modal-title"></h5>
             <button
               type="button"
               class="btn-close"
@@ -101,16 +33,7 @@
               aria-label="Close"
             ></button>
           </div>
-          <div class="modal-body">
-            <!-- <p id="result">
-              <strong>Attempts: </strong> <br />
-              <strong>Final Time: </strong> <br />
-              <strong>Hints Used: </strong> <br />
-              <strong>Final Score: </strong> <br />
-              <br />
-            </p> -->
-            <!-- <div id="solution"><strong>SOLUTION:</strong></div> -->
-          </div>
+          <div class="modal-body"></div>
           <div class="modal-footer">
             <button
               type="button"
@@ -126,6 +49,104 @@
         </div>
       </div>
     </div>
+    <!-- <div class="myModal">
+      <div class="modal-dialog modal-dialog-centered" tabindex="-1">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">GAME SETTINGS</h5>
+            <button
+              type="button"
+              class="btn-close"
+              data-bs-dismiss="modal"
+              aria-label="Close"
+            ></button>
+          </div>
+          <div class="modal-body">
+            <form id="form">
+              <h6>Play Mode:</h6>
+              <input
+                type="radio"
+                class="btn-check"
+                name="gameMode"
+                id="two-player"
+                autocomplete="off"
+              />
+              <label class="btn btn-secondary" for="two-player"
+                >Player Vs Player</label
+              >
+              <input
+                type="radio"
+                class="btn-check"
+                name="gameMode"
+                id="single-player"
+                autocomplete="off"
+                checked
+              />
+              <label class="btn btn-primary" for="single-player"
+                >Player Vs Computer</label
+              >
+
+              <hr />
+              <h6>Color Duplicates:</h6>
+              <div class="form-check form-switch">
+                <input
+                  class="form-check-input"
+                  type="checkbox"
+                  id="duplicates-allowed"
+                />
+                <label class="form-check-label" for="duplicates-allowed"
+                  >Allow Duplicates</label
+                >
+              </div>
+              <hr />
+              <h6>Difficulty:</h6>
+              <select class="form-select">
+                <option selected>Easy</option>
+                <option value="1">Medium</option>
+                <option value="2">Hard</option>
+              </select>
+              <hr />
+              <h6>Time in Seconds:</h6>
+              <select class="form-select">
+                <option value="none" selected>none</option>
+                <option value="250">250</option>
+                <option value="500">500</option>
+                <option value="1000">1000</option>
+              </select>
+              <hr />
+              <h6>Allow Hints</h6>
+              <div class="form-check form-switch">
+                <input
+                  class="form-check-input"
+                  type="checkbox"
+                  id="hints-allowed"
+                />
+                <label class="form-check-label" for="hints-allowed"
+                  >Hints</label
+                >
+              </div>
+              <hr />
+              <button type="submit" class="btn btn-primary btn-submit">
+                Submit
+              </button>
+            </form>
+            <p></p>
+          </div>
+          <div class="modal-footer">
+            <button
+              type="button"
+              class="btn btn-secondary cancel-btn"
+              data-bs-dismiss="modal"
+            >
+              Cancel
+            </button>
+            <button type="button" class="btn btn-primary apply-settings">
+              Apply
+            </button>
+          </div>
+        </div>
+      </div>
+    </div> -->
     <!-- <div class="result"></div> -->
     <div class="contanier game-container">
       <header class="form-row row-title">
@@ -151,6 +172,7 @@
           </h6>
         </div>
       </header>
+
       <main class="game-board" id="gameBoard">
         <div
           class="d-flex flex-row justify-content-around align-items-center mb-0"
@@ -209,10 +231,11 @@
           <div
             class="col-md-9 col-xs-12 input-btns-container d-flex flex-row align-items-center justify-content-around"
           ></div>
-          <div class="col-md-3 col-xs-12 hint-btn-container">
-            <button class="hint-btn">HINT</button>
+          <div class="col-md-3 col-xs-12 settings-btn-container">
+            <button class="settings-btn">Settings</button>
           </div>
         </div>
+
         <!-- <div class="row">
           <div
             class="col d-flex flex-row align-items-center justify-content-center feedback-container"
