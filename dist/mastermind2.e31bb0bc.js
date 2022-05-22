@@ -2675,7 +2675,6 @@ module.exports.default = axios;
 },{"./utils":"node_modules/axios/lib/utils.js","./helpers/bind":"node_modules/axios/lib/helpers/bind.js","./core/Axios":"node_modules/axios/lib/core/Axios.js","./core/mergeConfig":"node_modules/axios/lib/core/mergeConfig.js","./defaults":"node_modules/axios/lib/defaults.js","./cancel/Cancel":"node_modules/axios/lib/cancel/Cancel.js","./cancel/CancelToken":"node_modules/axios/lib/cancel/CancelToken.js","./cancel/isCancel":"node_modules/axios/lib/cancel/isCancel.js","./helpers/spread":"node_modules/axios/lib/helpers/spread.js","./helpers/isAxiosError":"node_modules/axios/lib/helpers/isAxiosError.js"}],"node_modules/axios/index.js":[function(require,module,exports) {
 module.exports = require('./lib/axios');
 },{"./lib/axios":"node_modules/axios/lib/axios.js"}],"index.js":[function(require,module,exports) {
-var define;
 "use strict";
 
 require("regenerator-runtime/runtime");
@@ -2706,7 +2705,6 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
 
 var globalStore = function initGame() {
   var gameDifficulty = "easy";
-  var numericSecret;
   var attemptCount = 0;
   var colorInputCount = 0;
   var selectedColors = [];
@@ -2720,7 +2718,6 @@ var globalStore = function initGame() {
     attemptCount: attemptCount,
     colorInputCount: colorInputCount,
     gameDifficulty: gameDifficulty,
-    numericSecret: numericSecret,
     feedbacks: feedbacks,
     selectedColors: selectedColors,
     gameover: gameover,
@@ -2881,6 +2878,9 @@ function _generateRandomSequence() {
 
 function setGameDifficulty(difficulty) {
   // takes string argument
+  var text = difficulty.charAt(0).toUpperCase() + difficulty.slice(1);
+  console.log(text);
+  $("#difficulty").text(text);
   var secretLength = renderPlacements(difficulty);
   globalStore.columnIds.forEach(function (id, i) {
     var colsPerAttempt = [];
@@ -2907,7 +2907,6 @@ function createInputButtons() {
   $(".input-btns-container").append(btnArray);
   $(".input-btns-container").on("click", function (e) {
     if ($($(e.target)).text() === "Press") {
-      console.log($($(e.target)).text());
       handleInput(e);
     }
   });
@@ -2921,7 +2920,86 @@ function handleInput(event) {
     $("#".concat(placementId)).css("background-color", selectedColor);
     globalStore.colorInputCount++;
     globalStore.selectedColors.push(selectedColor);
+    console.log("colorInputCount: ", globalStore.colorInputCount);
+    console.log("AttemptCount: ", globalStore.attemptCount);
+    console.log("sequenceLength:", globalStore.sequenceLength);
+    console.log("selectedColor:", event.target.id);
+    console.log("selectedColors: ", globalStore.selectedColors);
+    console.log("gameDifficulty : ", globalStore.gameDifficulty);
+    console.log("numericSecret: ", globalStore.numericSecret);
+    console.log("feedbacks:", globalStore.feedbacks);
+    console.log("gameover:", globalStore.gameover);
   }
+}
+
+function handleCheck(secret, target) {
+  "**************** Inside handle check ";
+
+  console.log("colorInputCount: ", globalStore.colorInputCount);
+  console.log("AttemptCount: ", globalStore.attemptCount);
+  console.log("sequenceLength:", globalStore.sequenceLength);
+  console.log("selectedColor:", target.id);
+  console.log("selectedColors: ", globalStore.selectedColors);
+  console.log("secret:", secret);
+  console.log("gameDifficulty : ", globalStore.gameDifficulty);
+  console.log("numericSecret: ", globalStore.numericSecret);
+  console.log("feedbacks:", globalStore.feedbacks);
+  console.log("gameover:", globalStore.gameover);
+  var btnId = "check-".concat(globalStore.columnIds[globalStore.attemptCount]);
+
+  if (target.id === btnId && globalStore.colorInputCount === globalStore.selectedColors.length && globalStore.colorInputCount === globalStore.sequenceLength) {
+    // check for win
+    var checkForMatch = function checkForMatch(selectedSequence, code) {
+      return selectedSequence.every(function (color, i) {
+        return color === code[i];
+      });
+    };
+
+    $($(target)).prop("disabled", true); // displayFeedback
+
+    var feedback = checkForFeedback(secret, globalStore.selectedColors);
+    globalStore.feedbacks.push(feedback);
+    console.log("feedback:", feedback); // let divId = globalStore.columnIds[globalStore.attemptCount];
+
+    $($(target)).html(feedback);
+    var isDecoded = checkForMatch(globalStore.selectedColors, secret);
+
+    if (globalStore.attemptCount < 2 && !isDecoded) {
+      console.log("inside attemptCount: ", globalStore.attemptCount);
+      globalStore.attemptCount++;
+      globalStore.colorInputCount = 0;
+      globalStore.selectedColors = [];
+    } else if (isDecoded) {
+      console.log("inside decoded:", isDecoded);
+      var message = "<p id=\"result\">\n      <strong>Attempts: </strong> <br />\n      <strong>Final Time: </strong> <br />\n      <strong>Hints Used: </strong> <br />\n      <strong>Final Score: </strong> <br />\n      <br />\n      <strong id=\"solution\">SOLUTION:</strong>\n    </p>";
+      showModal("You Win!", message, "Play Again", "Close", restartGame, hideModal); // $(".btn-close").on("click", function (e) {
+      //   $(".modal").hide();
+      // });
+      // $("#replay").on("click", function (e) {
+      //   $(".modal").hide();
+      // run replay function to reset variables.
+      // });
+      // $(".modal").show();
+      // $("modal-body").text("Sorry!! /n /n Try Again.");
+      // replace hint button text with replay
+      // replace hint button handler with anchor tag to start page.
+    } else {
+      console.log("inside lose block:"); // $(".btn-close").on("click", function (e) {
+      //   $(".modal").hide();
+      // });
+      // $("#replay").on("click", function (e) {
+      //   $(".modal").hide();
+      // });
+      // $(".modal-title").text("You Lose!");
+
+      var _message = "<p id=\"result\">\n      <strong>Attempts: </strong> <br />\n      <strong>Final Time: </strong> <br />\n      <strong>Hints Used: </strong> <br />\n      <strong>Final Score: </strong> <br />\n      <br />\n      <strong id=\"solution\">SOLUTION:</strong>\n    </p>";
+      showModal("You Lose!", _message, "Play Again", "Close", reloadPage, hideModal);
+    }
+  }
+}
+
+function reloadPage() {
+  location.reload();
 }
 
 function checkForFeedback(sequence, enteredSequence) {
@@ -2936,8 +3014,14 @@ function checkForFeedback(sequence, enteredSequence) {
   return feedback;
 }
 
-$(document).ready(function () {
-  generateRandomSequence(4, 7).then(function (secret) {
+function restartGame() {
+  hideModal();
+  globalStore.attemptCount = 0;
+  globalStore.colorInputCount = 0;
+  globalStore.feedbacks = [];
+  globalStore.selectedColors = [];
+  var codeLength = globalStore.gameDifficulty === "easy" ? 4 : globalStore.gameDifficulty === "medium" ? 5 : 6;
+  generateRandomSequence(codeLength, 7).then(function (secret) {
     // create positions for code in each column based on difficulty
     setGameDifficulty(globalStore.gameDifficulty); // create colored buttons dynamically
 
@@ -2954,39 +3038,61 @@ $(document).ready(function () {
       counter++;
     }
   });
-});
-
-function handleCheck(secret, target) {
-  var id = "check-".concat(globalStore.columnIds[globalStore.attemptCount]);
-
-  if (target.id === id && globalStore.colorInputCount === globalStore.selectedColors.length) {
-    // check for win
-    var checkForMatch = function checkForMatch(selectedSequence, code) {
-      return selectedSequence.every(function (color, i) {
-        return color === code[i];
-      });
-    };
-
-    $($(target)).prop("disabled", true); // displayFeedback
-
-    var feedback = checkForFeedback(secret, globalStore.selectedColors);
-    globalStore.feedbacks.push(feedback); // let divId = globalStore.columnIds[globalStore.attemptCount];
-
-    $($(target)).html(feedback);
-    var isDecoded = checkForMatch(globalStore.selectedColors, secret);
-
-    if (globalStore.attemptCount < 9 && !isDecoded) {
-      globalStore.attemptCount++;
-      globalStore.colorInputCount = 0;
-      globalStore.selectedColors = [];
-    } else if (isDecoded) {
-      alert("You win!"); // replace hint button text with replay
-      // replace hint button handler with anchor tag to start page.
-    } else {
-      alert("Sorry! Try Again."); // lose
-    }
-  }
 }
+
+function hideModal() {
+  $(".modal").hide();
+}
+
+function showModal(text, html, btn1Text, btn2Text, btn1Handler, btn2Handler) {
+  $(".modal-title").text(text);
+  $(".modal-body").html($(html));
+  $("#replay").text(btn1Text);
+  $(".btn-secondary").text(btn2Text);
+  $("#replay").on("click", btn1Handler);
+  $(".btn-secondary").on("click", btn2Handler);
+  $(".btn-close").text("❌");
+  $(".btn-close").on("click", function (e) {
+    $(".modal").hide();
+  });
+  $(".modal").show();
+}
+/************************ Game Starts Here *********************/
+// $(document).ready(() => {
+
+
+$(function () {
+  var instructions = "<p>The player tries to decode the code generated by computer or another player.<br>\n  The code can be made up of any combination of the colored pegs.<br>\n  Each guess is made by placing a row of Code pegs on the unit.<br>\n  Then the progress is displayed by pressing the check button associated with that unit.<br><br>\n  <Strong> Red Circle: &nbsp;&nbsp;&nbsp;&nbsp&nbsp; Same color in the correct position.</Strong><br>\n  <Strong>White Circle: &nbsp;&nbsp;&nbsp; Same color in the wrong position.</Strong>\n  <br><br>\n  </p>";
+  showModal("GAME INSTRUCTIONS", instructions, "Play", "Settings", restartGame, // hideModal
+  handleSettings);
+
+  function handleSettings() {
+    hideModal();
+    $(".modal-settingds").show();
+  } // let codeLength =
+  //   globalStore.gameDifficulty === "easy"
+  //     ? 4
+  //     : globalStore.gameDifficulty === "medium"
+  //     ? 5
+  //     : 6;
+  // generateRandomSequence(codeLength, 7).then((secret) => {
+  //   // create positions for code in each column based on difficulty
+  //   setGameDifficulty(globalStore.gameDifficulty);
+  //   // create colored buttons dynamically
+  //   createInputButtons();
+  //   // attach click handler to the check buttons
+  //   let counter = 0;
+  //   while (counter < 10) {
+  //     let checkId = globalStore.columnIds[counter];
+  //     $(`button#check-${checkId}`).on("click", function (e) {
+  //       console.log("e.target", e.target);
+  //       handleCheck(secret, e.target);
+  //     });
+  //     counter++;
+  //   }
+  // });
+
+});
 
 function calculateScore() {// based on number of attempts used
   // based on number of hints used (optional)
@@ -3000,10 +3106,6 @@ function displayResult() {// alert or another page to show score or win or loose
   // 6+ attempts used ---- well played.
   // 4+ attempts used ---- you are brilliant
   // 2+ attempts used ---- you are super hero!
-}
-
-function restart() {// change hint to play again
-  // reset all global variables.
 } // apply tooltip
 // display result
 //restart button
@@ -3039,7 +3141,7 @@ var parent = module.bundle.parent;
 if ((!parent || !parent.isParcelRequire) && typeof WebSocket !== 'undefined') {
   var hostname = "" || location.hostname;
   var protocol = location.protocol === 'https:' ? 'wss' : 'ws';
-  var ws = new WebSocket(protocol + '://' + hostname + ':' + "52528" + '/');
+  var ws = new WebSocket(protocol + '://' + hostname + ':' + "53018" + '/');
 
   ws.onmessage = function (event) {
     checkedAssets = {};

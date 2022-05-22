@@ -1,10 +1,12 @@
-.selector-for-some-widget {
+/* .selector-for-some-widget {
   box-sizing: content-box;
-}
+} */
 
 .game-container {
-  margin: 15px;
-  margin-bottom: 0;
+  margin: 20px;
+  margin-top: 5px;
+  /* margin-bottom: 20px; */
+  /* margin-bottom: 10px; */
   padding: 20px;
   border: 3px solid silver;
   background-image: linear-gradient(to bottom, #3177eeff, #113d8aff);
@@ -39,10 +41,11 @@
   /* width: 80%; */
   margin-top: 30px;
   margin-bottom: 30px;
-  height: 100vh;
+  /* height: 100vh; */
+  height: 78vh;
 }
 .rows {
-  height: 12%;
+  /* height: 12%; */
   height: 10%;
   margin: 0 5px;
 }
@@ -54,7 +57,8 @@
 .btns-row {
   margin: 20px 5px 0px 5px;
   justify-content: space-between;
-  height: 15vh;
+  /* height: 15vh; */
+  height: 12vh;
 }
 .input-btns-container {
   height: 90%;
@@ -64,7 +68,7 @@
   margin-bottom: 10px;
 }
 .hint-btn-container {
-  height: 90%;
+  /* height: 90%; */
   margin-top: 5px;
   display: flex;
   align-items: center;
@@ -114,7 +118,8 @@
 }
 .feedback-container {
   margin: 3px 5px 5px 0px;
-  height: 10vh;
+  /* height: 10vh; */
+  height: 8vh;
   background-color: #78909cff;
   border: 3px solid white;
 }
@@ -124,6 +129,7 @@
   height: 70px;
   font-size: 10px;
   font-weight: bold;
+  /* border: 10px solid white; */
 }
 .color-btns:hover {
   opacity: 0.5;
