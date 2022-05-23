@@ -1,19 +1,13 @@
 // to allow async await using axios
-// import "regenerator-runtime/runtime";
+import "regenerator-runtime/runtime";
 import axios from "axios";
 
 const globalStore = (function initGame() {
-  // const initGame = () => {
-  let gameDifficulty = "easy";
-  let hintsAllowed = false;
-  let gameMode = "singlePlayer";
-  let timer = "none";
   let attemptCount = 0;
   let colorInputCount = 0;
   let selectedColors = [];
   const feedbacks = [];
-  let duplicatesAllowed = false;
-  let sequenceLength = renderPlacements(gameDifficulty).length;
+
   const columnIds = [
     "r1c1",
     "r1c2",
@@ -33,15 +27,8 @@ const globalStore = (function initGame() {
     colorInputCount,
     feedbacks,
     selectedColors,
-    gameDifficulty,
-    sequenceLength,
-    duplicatesAllowed,
-    hintsAllowed,
-    gameMode,
-    timer,
   };
 })();
-// };
 
 function renderPlacements(difficulty) {
   let nums = [];
@@ -75,8 +62,9 @@ function getRandomColorSequence(sequence) {
   });
   return colorSequence;
 }
-async function generateRandomSequence(num, max) {
-  if (!globalStore.duplicatesAllowed) {
+async function generateRandomSequence(num, max, duplicatesAllowed) {
+  console.log("duplicatesAllowed: ", duplicatesAllowed);
+  if (!duplicatesAllowed) {
     let isUnique = false;
     try {
       while (!isUnique) {
@@ -85,14 +73,12 @@ async function generateRandomSequence(num, max) {
         );
         const randomSequence = response.data;
         let sequence = await randomSequence.trim().split("\n");
-        console.log(sequence);
+        console.log("unique:", sequence);
         let uniqueSequence = [...new Set(sequence)];
         if (uniqueSequence.length === sequence.length) {
           isUnique = true;
           const colorSequence = await getRandomColorSequence(sequence);
-          // return randomSequence;
-          console.log(colorSequence);
-          return await colorSequence;
+          return colorSequence;
         }
       }
     } catch (errors) {
@@ -105,11 +91,8 @@ async function generateRandomSequence(num, max) {
       );
       const randomSequence = response.data;
       let sequence = await randomSequence.trim().split("\n");
-      console.log(sequence);
       const colorSequence = await getRandomColorSequence(sequence);
-      // return randomSequence;
-      console.log(colorSequence);
-      return await colorSequence;
+      return colorSequence;
     } catch (errors) {
       console.error(errors);
     }
@@ -118,7 +101,6 @@ async function generateRandomSequence(num, max) {
 function setGameDifficulty(difficulty) {
   // takes string argument
   let text = difficulty.charAt(0).toUpperCase() + difficulty.slice(1);
-  console.log(text);
   $(`#difficulty`).text(text);
   let secretLength = renderPlacements(difficulty);
   globalStore.columnIds.forEach((id, i) => {
@@ -136,7 +118,7 @@ function setGameDifficulty(difficulty) {
     colsPerAttempt = [];
   });
 }
-function createInputButtons() {
+function createInputButtons(secret) {
   const colors = [
     "#ff0000ff",
     "#ff9900ff",
@@ -159,13 +141,13 @@ function createInputButtons() {
 
   $(`.input-btns-container`).on("click", function (e) {
     if ($($(e.target)).text() === "Press") {
-      handleInput(e);
+      handleInput(e, secret);
     }
   });
 }
-function handleInput(event) {
+function handleInput(event, secret) {
   if (
-    globalStore.colorInputCount < globalStore.sequenceLength &&
+    globalStore.colorInputCount < secret.length &&
     globalStore.attemptCount < 10
   ) {
     let selectedColor = event.target.id;
@@ -174,43 +156,21 @@ function handleInput(event) {
     $(`#${placementId}`).css("background-color", selectedColor);
     globalStore.colorInputCount++;
     globalStore.selectedColors.push(selectedColor);
-    console.log("colorInputCount: ", globalStore.colorInputCount);
-    console.log("AttemptCount: ", globalStore.attemptCount);
-    console.log("sequenceLength:", globalStore.sequenceLength);
-    console.log("selectedColor:", event.target.id);
-    console.log("selectedColors: ", globalStore.selectedColors);
-    console.log("gameDifficulty : ", globalStore.gameDifficulty);
-    console.log("numericSecret: ", globalStore.numericSecret);
-    console.log("feedbacks:", globalStore.feedbacks);
-    console.log("gameover:", globalStore.gameover);
   }
 }
 function handleCheck(secret, target) {
-  "**************** Inside handle check ";
-  console.log("colorInputCount: ", globalStore.colorInputCount);
-  console.log("AttemptCount: ", globalStore.attemptCount);
-  console.log("sequenceLength:", globalStore.sequenceLength);
-  console.log("selectedColor:", target.id);
-  console.log("selectedColors: ", globalStore.selectedColors);
-  console.log("secret:", secret);
-  console.log("gameDifficulty : ", globalStore.gameDifficulty);
-  console.log("numericSecret: ", globalStore.numericSecret);
-  console.log("feedbacks:", globalStore.feedbacks);
-  console.log("gameover:", globalStore.gameover);
   let btnId = `check-${globalStore.columnIds[globalStore.attemptCount]}`;
 
   if (
     target.id === btnId &&
     globalStore.colorInputCount === globalStore.selectedColors.length &&
-    globalStore.colorInputCount === globalStore.sequenceLength
+    globalStore.colorInputCount === secret.length
   ) {
     $($(target)).prop("disabled", true);
 
     // displayFeedback
     const feedback = checkForFeedback(secret, globalStore.selectedColors);
     globalStore.feedbacks.push(feedback);
-    console.log("feedback:", feedback);
-    // let divId = globalStore.columnIds[globalStore.attemptCount];
     $($(target)).html(feedback);
 
     // check for win
@@ -218,18 +178,18 @@ function handleCheck(secret, target) {
       return selectedSequence.every((color, i) => color === code[i]);
     }
     let isDecoded = checkForMatch(globalStore.selectedColors, secret);
-    if (globalStore.attemptCount < 10 && !isDecoded) {
-      console.log("inside attemptCount: ", globalStore.attemptCount);
+    if (globalStore.attemptCount < 9 && !isDecoded) {
       globalStore.attemptCount++;
       globalStore.colorInputCount = 0;
       globalStore.selectedColors = [];
     } else if (isDecoded) {
-      console.log("inside decoded:", isDecoded);
       let message = `<p id="result">
-      <strong>Attempts: </strong> <br />
-      <strong>Final Time: </strong> <br />
-      <strong>Hints Used: </strong> <br />
-      <strong>Final Score: </strong> <br />
+      <strong>Attempts:&nbsp;&nbsp;${
+        globalStore.attemptCount + 1
+      } </strong> <br />
+      <strong>Final Time:&nbsp;&nbsp;${0} </strong> <br />
+      <strong>Hints Used:&nbsp;&nbsp;${0}</strong> <br />
+      <strong>Final Score:&nbsp;&nbsp;${0} </strong> <br />
       <br />
       <strong id="solution">SOLUTION:</strong>
     </p>`;
@@ -241,32 +201,14 @@ function handleCheck(secret, target) {
         restartGame,
         hideModal
       );
-      // $(".btn-close").on("click", function (e) {
-      //   $(".modal").hide();
-      // });
-      // $("#replay").on("click", function (e) {
-      //   $(".modal").hide();
-      // run replay function to reset variables.
-      // });
-      // $(".modal").show();
-      // $("modal-body").text("Sorry!! /n /n Try Again.");
-      // replace hint button text with replay
-      // replace hint button handler with anchor tag to start page.
     } else {
-      console.log("inside lose block:");
-
-      // $(".btn-close").on("click", function (e) {
-      //   $(".modal").hide();
-      // });
-      // $("#replay").on("click", function (e) {
-      //   $(".modal").hide();
-      // });
-      // $(".modal-title").text("You Lose!");
       let message = `<p id="result">
-      <strong>Attempts: </strong> <br />
-      <strong>Final Time: </strong> <br />
-      <strong>Hints Used: </strong> <br />
-      <strong>Final Score: </strong> <br />
+      <strong>Attempts:&nbsp;&nbsp;${
+        globalStore.attemptCount + 1
+      } </strong> <br />
+      <strong>Final Time:&nbsp;&nbsp;${0} </strong> <br />
+      <strong>Hints Used:&nbsp;&nbsp;${0} </strong> <br />
+      <strong>Final Score:&nbsp;&nbsp;${0} </strong> <br />
       <br />
       <strong id="solution">SOLUTION:</strong>
     </p>`;
@@ -290,12 +232,18 @@ function checkForFeedback(sequence, enteredSequence) {
     if (val === sequence[i]) {
       feedback.push(`🔴&nbsp;`);
     } else if (sequence.includes(val)) {
-      feedback.push(`⚪&nbsp; `);
+      feedback.push(`⚪&nbsp;`);
     }
   });
   return feedback;
 }
-function restartGame() {
+function restartGame(
+  gameDifficulty,
+  gameMode,
+  hintsAllowed,
+  timer,
+  duplicatesAllowed
+) {
   $(`#bg-music`)[0].play();
 
   hideModal();
@@ -304,16 +252,12 @@ function restartGame() {
   globalStore.feedbacks = [];
   globalStore.selectedColors = [];
   let codeLength =
-    globalStore.gameDifficulty === "easy"
-      ? 4
-      : globalStore.gameDifficulty === "medium"
-      ? 5
-      : 6;
-  generateRandomSequence(codeLength, 7).then((secret) => {
+    gameDifficulty === "easy" ? 4 : gameDifficulty === "medium" ? 5 : 6;
+  generateRandomSequence(codeLength, 7, duplicatesAllowed).then((secret) => {
     // create positions for code in each column based on difficulty
-    setGameDifficulty(globalStore.gameDifficulty);
+    setGameDifficulty(gameDifficulty);
     // create colored buttons dynamically
-    createInputButtons();
+    createInputButtons(secret);
     // attach click handler to the check buttons
     let counter = 0;
     while (counter < 10) {
@@ -324,8 +268,71 @@ function restartGame() {
       });
       counter++;
     }
-    $(`.settings-btn`).on("click", function (e) {
-      let $htmlContent = $(`<form id="modal-form">
+  });
+}
+
+function hideModal() {
+  $(".modal").hide();
+}
+function showModal(text, html, btn1Text, btn2Text, btn1Handler, btn2Handler) {
+  $(".modal-title").text(text);
+  $(".modal-body").html($(html));
+  $("#replay").text(btn1Text);
+  $(".btn-secondary").text(btn2Text);
+  $("#replay").on("click", btn1Handler);
+  $(".btn-secondary").on("click", btn2Handler);
+  $(".btn-close").text("❌");
+  $(".btn-close").on("click", function (e) {
+    $(".modal").hide();
+  });
+  $(".modal").show();
+}
+
+/************************ Game Starts Here *********************/
+// $(document).ready(() => {
+
+$(function () {
+  console.log(localStorage);
+  let gameDifficulty = localStorage.getItem("gameDifficulty")
+    ? localStorage.getItem("gameDifficulty")
+    : "easy";
+
+  let hintsAllowed = localStorage.getItem("hintsAllowed") ? true : false;
+  let gameMode = localStorage.getItem("gameMode")
+    ? localStorage.getItem("gameMode")
+    : "singlePlayer";
+  let timer = localStorage.getItem("timer")
+    ? localStorage.getItem("timer")
+    : "none";
+  let duplicatesAllowed = !JSON.parse(localStorage.getItem("duplicatesAllowed"))
+    ? true
+    : false;
+
+  let instructions = `<p>The player tries to decode the code generated by computer or another player.<br>
+  The code can be made up of any combination of the colored pegs.<br>
+  Each guess is made by placing a row of Code pegs on the unit.<br>
+  Then the progress is displayed by pressing the check button associated with that unit.<br><br>
+  <Strong> Red Circle: &nbsp;&nbsp;&nbsp;&nbsp&nbsp; Same color in the correct position.</Strong><br>
+  <Strong>White Circle: &nbsp;&nbsp;&nbsp; Same color in the wrong position.</Strong>
+  <br><br>
+  </p>`;
+  showModal(
+    "GAME INSTRUCTIONS",
+    instructions,
+    "Play",
+    "Cancel",
+    () =>
+      restartGame(
+        gameDifficulty,
+        gameMode,
+        hintsAllowed,
+        timer,
+        duplicatesAllowed
+      ),
+    hideModal
+  );
+  $(`.settings-btn`).on("click", function (e) {
+    let $htmlContent = $(`<form id="modal-form type="submit"">
           <h6>Play Mode:</h6>
           <input
             type="radio"
@@ -458,133 +465,182 @@ function restartGame() {
           Submit
         </button>
       </form>`);
-      $(".modal-body").html($htmlContent);
-      $(".modal-title").text("Game Settings");
-      $(".modal-footer").html($(`<div></div>`));
-      $(".modal").show();
-      $(".btn-submit").on("click", function (e) {
-        e.preventDefault();
-        let formData = $(`input[type="radio"].form-check`).val(jQuery(this));
-        $(`#modal-form input`).each((i, field) => {
-          if (field.checked) {
-            console.log(field.id);
-          }
-          if (field.id === "singlePlayer" || field.id === "twoPlayer") {
-            globalStore.gameMode = field.id;
-          }
-          if (
-            field.id === "easy" ||
-            field.id === "medium" ||
-            field.id === "hard"
-          ) {
-            globalStore.gameDifficulty = field.id;
-            if (field.id === "duplicatesAllowed") {
-              globalStore.duplicatesAllowed = true;
-            }
-            if (
-              field.id === "none" ||
-              field.id === "250" ||
-              field.id === "500" ||
-              field.id === "1000"
-            ) {
-              globalStore.timer = field.id;
-            }
-            if (field.id === "hintsAllowed") {
-              globalStore.hintsAllowed = true;
-            }
-            // restartGame();
-          }
-        });
-        // $(`#modal-form select`).each((i, field) => {
-        //   $(field).map((i, option) => {
-        //     console.log($(option).html());
-        //   });
-        // });
-      });
+    $(".modal-body").html($htmlContent);
+    $(".modal-title").text("Game Settings");
+    $(".modal-footer").html($(`<div></div>`));
+    $(".modal").show();
+    // $(".btn-submit").on("click", function (e) {
+    //   e.preventDefault();
+
+    //   let formData = $(`input[type="radio"].form-check`).val(jQuery(this));
+    //   $(`#modal-form input`).each((i, field) => {
+    //     if (field.checked) {
+    //       console.log(field.id);
+
+    //       if (field.id === "singlePlayer" || field.id === "twoPlayer") {
+    //         // globalStore.gameMode = field.id;
+    //        localStorage.setItem("gameMode", field.id);
+    //         console.log("clicked");
+    //       }
+    //       if (
+    //         field.id === "easy" ||
+    //         field.id === "medium" ||
+    //         field.id === "hard"
+    //       ) {
+    //         localStorage.setItem("gameDifficulty", field.id);
+    //         // globalStore.gameDifficulty = field.id;
+    //         if (field.id === "duplicatesAllowed") {
+    //           localStorage.setItem("duplicatesAllowed", "true");
+    //           // globalStore.duplicatesAllowed = true;
+    //         } else {
+    //           localStorage.setItem("hintsAllowed", "false");
+    //         }
+    //         if (
+    //           field.id === "none" ||
+    //           field.id === "250" ||
+    //           field.id === "500" ||
+    //           field.id === "1000"
+    //         ) {
+    //           localStorage.setItem("timer", field.id);
+    //           // globalStore.timer = field.id;
+    //         }
+    //         if (field.id === "hintsAllowed") {
+    //           localStorage.setItem("hintsAllowed", "true");
+
+    //           // globalStore.hintsAllowed = true;
+    //         } else {
+    //           localStorage.setItem("hintsAllowed", "false");
+    //         }
+
+    //         gameDifficulty = localStorage.getItem("gameDifficulty");
+    //         gameMode = localStorage.getItem("gameMode");
+    //         hintsAllowed = localStorage.getItem("hintsAllowed");
+    //         timer = localStorage.getItem("timer");
+    //         duplicatesAllowed = localStorage.getItem("duplicatesAllowed");
+    //         location.reload();
+    //         restartGame(
+    //           gameDifficulty,
+    //           gameMode,
+    //           hintsAllowed,
+    //           timer,
+    //           duplicatesAllowed
+    //         );
+    //       }
+    //     }
+    //   });
+    // });
+    /**************************************** */
+  });
+  // $(".btn-submit").on("click", function (e) {
+  $(`form .modal-form`).on("submit", function (e) {
+    e.preventDefault();
+    console.log(clicked);
+    //   let formData = $(`input[type="radio"].form-check`).val(jQuery(this));
+    // $(`#modal-form input`).each((i, field) => {
+    $(`.modal-body input`).each((i, field) => {
+      console.log("fields:", field.id);
+      if (field.checked) {
+        console.log("checkedfields:", field.id);
+      }
+      if (field.id === "singlePlayer" || field.id === "twoPlayer") {
+        // globalStore.gameMode = field.id;
+        localStorage.setItem("gameMode", field.id);
+        console.log(" localStorage: ", localStorage);
+      }
+      if (field.id === "easy" || field.id === "medium" || field.id === "hard") {
+        localStorage.setItem("gameDifficulty", field.id);
+        console.log(" localStorage: ", localStorage);
+        // globalStore.gameDifficulty = field.id;
+      }
+      if (field.id === "duplicatesAllowed") {
+        localStorage.setItem("duplicatesAllowed", "true");
+      } else {
+        localStorage.setItem("duplicatesAllowed", "false");
+      }
+      console.log(" localStorage: ", localStorage);
+      if (
+        field.id === "none" ||
+        field.id === "250" ||
+        field.id === "500" ||
+        field.id === "1000"
+      ) {
+        localStorage.setItem("timer", field.id);
+        console.log(" localStorage: ", localStorage);
+        // globalStore.timer = field.id;
+      }
+      if (field.id === "hintsAllowed") {
+        localStorage.setItem("hintsAllowed", "true");
+      } else {
+        localStorage.setItem("hintsAllowed", "false");
+      }
+      console.log(" localStorage: ", localStorage);
+      // globalStore.hintsAllowed = true;
     });
+    gameDifficulty = localStorage.getItem("gameDifficulty");
+    gameMode = localStorage.getItem("gameMode");
+    hintsAllowed = localStorage.getItem("hintsAllowed");
+    timer = localStorage.getItem("timer");
+    duplicatesAllowed = localStorage.getItem("duplicatesAllowed");
+    console.log("localStorage:", localStorage);
+    // });
+    // setTimeOut(function () {
+    //   restartGame(
+    //     gameDifficulty,
+    //     gameMode,
+    //     hintsAllowed,
+    //     timer,
+    //     duplicatesAllowed
+    //   );
+    // }, 2000);
   });
-}
 
-function hideModal() {
-  $(".modal").hide();
-}
-function showModal(text, html, btn1Text, btn2Text, btn1Handler, btn2Handler) {
-  $(".modal-title").text(text);
-  $(".modal-body").html($(html));
-  $("#replay").text(btn1Text);
-  $(".btn-secondary").text(btn2Text);
-  $("#replay").on("click", btn1Handler);
-  $(".btn-secondary").on("click", btn2Handler);
-  $(".btn-close").text("❌");
-  $(".btn-close").on("click", function (e) {
-    $(".modal").hide();
-  });
-  $(".modal").show();
-}
-
-/************************ Game Starts Here *********************/
-// $(document).ready(() => {
-$(function () {
-  $(".myModal").hide();
-  // const globalStore = initGame();
-  let instructions = `<p>The player tries to decode the code generated by computer or another player.<br>
-  The code can be made up of any combination of the colored pegs.<br>
-  Each guess is made by placing a row of Code pegs on the unit.<br>
-  Then the progress is displayed by pressing the check button associated with that unit.<br><br>
-  <Strong> Red Circle: &nbsp;&nbsp;&nbsp;&nbsp&nbsp; Same color in the correct position.</Strong><br>
-  <Strong>White Circle: &nbsp;&nbsp;&nbsp; Same color in the wrong position.</Strong>
-  <br><br>
-  </p>`;
-
-  showModal(
-    "GAME INSTRUCTIONS",
-    instructions,
-    "Play",
-    "Cancel",
-    restartGame,
-    hideModal
-    // handleSettings
-  );
-  // function handleSettings() {
-  //   hideModal();
-  // }
-  // let codeLength =
-  //   globalStore.gameDifficulty === "easy"
-  //     ? 4
-  //     : globalStore.gameDifficulty === "medium"
-  //     ? 5
-  //     : 6;
-  // $.get(
-  //   `https://www.random.org/integers/?num=${4}&min=0&max=${7}&col=1&base=10&format=plain&rnd=new`,
-  //   function (data) {
-  //     console.log(data);
-  //     generateRandomSequence(codeLength, 7).then((secret) => {
-  //       console.log(secret);
-  //     });
-  //   }
-  // );
-  // let codeLength =
-  //   globalStore.gameDifficulty === "easy"
-  //     ? 4
-  //     : globalStore.gameDifficulty === "medium"
-  //     ? 5
-  //     : 6;
-  // generateRandomSequence(codeLength, 7).then((secret) => {
-  //   // create positions for code in each column based on difficulty
-  //   setGameDifficulty(globalStore.gameDifficulty);
-  //   // create colored buttons dynamically
-  //   createInputButtons();
-  //   // attach click handler to the check buttons
-  //   let counter = 0;
-  //   while (counter < 10) {
-  //     let checkId = globalStore.columnIds[counter];
-  //     $(`button#check-${checkId}`).on("click", function (e) {
-  //       console.log("e.target", e.target);
-  //       handleCheck(secret, e.target);
-  //     });
-  //     counter++;
-  //   }
+  //   // $(`#modal-form select`).each((i, field) => {
+  //   //   $(field).map((i, option) => {
+  //   //     console.log($(option).html());
+  //   //   });
+  //   // });
   // });
+  /********************************************* */
+  // $(`.modal-body input`).each((i, field) => {
+  //   if (field.checked) {
+  //     console.log("fields:", field.id);
+
+  //     if (field.id === "singlePlayer" || field.id === "twoPlayer") {
+  //       localStorage.setItem("gameMode", field.id);
+  //     }
+  //     if (
+  //       field.id === "easy" ||
+  //       field.id === "medium" ||
+  //       field.id === "hard"
+  //     ) {
+  //       localStorage.setItem("gameDifficulty", field.id);
+  //     }
+  //     if (field.id === "duplicatesAllowed") {
+  //       localStorage.setItem("duplicatesAllowed", "true");
+  //     } else {
+  //       localStorage.setItem("duplicatesAllowed", "false");
+  //     }
+  //     if (
+  //       field.id === "none" ||
+  //       field.id === "250" ||
+  //       field.id === "500" ||
+  //       field.id === "1000"
+  //     ) {
+  //       localStorage.setItem("timer", field.id);
+  //     }
+  //     if (field.id === "hintsAllowed") {
+  //       console.log(field.id);
+  //       localStorage.setItem("hintsAllowed", "true");
+  //     } else {
+  //       console.log(field.id);
+  //       localStorage.setItem("hintsAllowed", "false");
+
+  //     }
+  //   }
+  //   console.log("localStorage:", localStorage)
+  //   restartGame();
+  // });
+  /********************************************** */
 });
 
 function calculateScore() {
@@ -601,11 +657,3 @@ function displayResult() {
   // 4+ attempts used ---- you are brilliant
   // 2+ attempts used ---- you are super hero!
 }
-
-// apply tooltip
-// display result
-//restart button
-// implement time
-// implement options button that leads to form
-// for querying extensions.
-// remove click from parent of buttons
