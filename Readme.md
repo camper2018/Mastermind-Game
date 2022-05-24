@@ -15,11 +15,11 @@ This game was built with HTML, CSS, Javascript.
 
 ## Project details
 
-1.Implemented mastermind game basic requirements.
-2.The UI design is flexible to adopt to various game difficulty levels[easy,medium,hard].
-3.Changed numbers into colored pegs.
-4.Added feedback with each attempt.
-5.Added how to play instructions popup.
-6.Also incorporated settings screen to allow extention[work-in-progress].
-7.Added background music.
-8.Add code to switch to duplicates-allowed vs unique colored pegs.
+1. Implemented mastermind game basic requirements.
+2. The UI design is flexible to adopt to various game difficulty levels[easy,medium,hard].
+3. Changed numbers into colored pegs.
+4. Added feedback with each attempt.
+5. Added how to play instructions popup.
+6. Also incorporated settings screen to allow extention[work-in-progress].
+7. Added background music.
+8. Add code to switch to duplicates-allowed vs unique colored pegs.
