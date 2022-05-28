@@ -185,7 +185,8 @@ function handleCheck(
     }
 
     let isDecoded = checkForMatch(globalStore.selectedColors, secret);
-    if (globalStore.attemptCount < 9 && !isDecoded) {
+    let solutionHtml = displaySolution(secret);
+    if (globalStore.attemptCount < 2 && !isDecoded) {
       if (time <= 0) {
         let message = `<p id="result">
         <strong>Attempts:&nbsp;&nbsp;${
@@ -197,7 +198,8 @@ function handleCheck(
         <strong>Hints Used:&nbsp;&nbsp;${0} </strong> <br />
         <strong>Final Score:&nbsp;&nbsp;${0} </strong> <br />
         <br />
-        <strong id="solution">SOLUTION:</strong>
+        <strong id="solution">SOLUTION:</strong><br/>
+        ${solutionHtml}
       </p>`;
         clearInterval(intervalId);
         showModal(
@@ -224,7 +226,8 @@ function handleCheck(
       <strong>Hints Used:&nbsp;&nbsp;${0}</strong> <br />
       <strong>Final Score:&nbsp;&nbsp;${0} </strong> <br />
       <br />
-      <strong id="solution">SOLUTION:</strong>
+      <strong id="solution">SOLUTION:</strong></br>
+      ${solutionHtml}
     </p>`;
       clearInterval(intervalId);
       showModal(
@@ -249,7 +252,8 @@ function handleCheck(
       <strong>Hints Used:&nbsp;&nbsp;${0} </strong> <br />
       <strong>Final Score:&nbsp;&nbsp;${0} </strong> <br />
       <br />
-      <strong id="solution">SOLUTION:</strong>
+      <strong id="solution">SOLUTION: </strong><br/>
+      ${solutionHtml}
     </p>`;
       clearInterval(intervalId);
       showModal(
@@ -284,7 +288,6 @@ function checkForFeedback(sequence, enteredSequence) {
         feedback.push(`⚪&nbsp;`);
         cache[val] = true;
       }
-      console.log("feedback", feedback);
     });
     return feedback;
   } else {
@@ -369,7 +372,15 @@ function showModal(text, html, btn1Text, btn2Text, btn1Handler, btn2Handler) {
   });
   $(".modal").show();
 }
-
+function displaySolution(secret) {
+  let html = `<div class="display-solution">`;
+  secret.forEach((color, i) => {
+    let colorDiv = `<div class="color-div" style="background-color: ${color};"></div>`;
+    html += colorDiv;
+  });
+  html += `</div>`;
+  return html;
+}
 /************************ Game Starts Here *********************/
 
 $(function () {

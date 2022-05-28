@@ -135,6 +135,19 @@
   background-color: white;
   color: #1c4587ff;
 }
+.display-solution {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-evenly;
+  align-items: center;
+  padding: 20px;
+  background-color: rgb(155, 177, 188);
+}
+.color-div {
+  width: 35px;
+  height: 35px;
+  border-radius: 100%;
+}
 /* ********************************* */
 /* @media (min-width: 576px) {  }
 
