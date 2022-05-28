@@ -57,6 +57,7 @@ function getRandomColorSequence(sequence) {
     "#ff00ffff",
     "#85200cff",
   ];
+
   const colorSequence = sequence.map((number, i) => {
     return colors[Number(number)];
   });
@@ -115,7 +116,7 @@ function setGameDifficulty(difficulty) {
     colsPerAttempt = [];
   });
 }
-function createInputButtons(secret) {
+function createInputButtons(secret, gameAttempt, streakCount) {
   const colors = [
     "#ff0000ff",
     "#ff9900ff",
@@ -155,9 +156,17 @@ function handleInput(event, secret) {
     globalStore.selectedColors.push(selectedColor);
   }
 }
-function handleCheck(secret, target) {
+function handleCheck(
+  secret,
+  target,
+  time,
+  intervalId,
+  gameAttempt,
+  streakCount
+) {
   let btnId = `check-${globalStore.columnIds[globalStore.attemptCount]}`;
-
+  console.log("secret", secret);
+  console.log("selected:", globalStore.selectedColors);
   if (
     target.id === btnId &&
     globalStore.colorInputCount === globalStore.selectedColors.length &&
@@ -174,41 +183,75 @@ function handleCheck(secret, target) {
     function checkForMatch(selectedSequence, code) {
       return selectedSequence.every((color, i) => color === code[i]);
     }
+
     let isDecoded = checkForMatch(globalStore.selectedColors, secret);
     if (globalStore.attemptCount < 9 && !isDecoded) {
-      globalStore.attemptCount++;
-      globalStore.colorInputCount = 0;
-      globalStore.selectedColors = [];
+      if (time <= 0) {
+        let message = `<p id="result">
+        <strong>Attempts:&nbsp;&nbsp;${
+          globalStore.attemptCount + 1
+        } </strong> <br />
+        <strong>Final Time:&nbsp;&nbsp;${
+          time && time >= 0 ? time : 0
+        } </strong> <br />
+        <strong>Hints Used:&nbsp;&nbsp;${0} </strong> <br />
+        <strong>Final Score:&nbsp;&nbsp;${0} </strong> <br />
+        <br />
+        <strong id="solution">SOLUTION:</strong>
+      </p>`;
+        clearInterval(intervalId);
+        showModal(
+          "You Lose!",
+          message,
+          "Play Again",
+          "Close",
+          reloadPage,
+          hideModal
+        );
+      } else {
+        globalStore.attemptCount++;
+        globalStore.colorInputCount = 0;
+        globalStore.selectedColors = [];
+      }
     } else if (isDecoded) {
       let message = `<p id="result">
       <strong>Attempts:&nbsp;&nbsp;${
         globalStore.attemptCount + 1
       } </strong> <br />
-      <strong>Final Time:&nbsp;&nbsp;${0} </strong> <br />
+      <strong>Final Time:&nbsp;&nbsp;${
+        time && time >= 0 ? time : 0
+      } </strong> <br />
       <strong>Hints Used:&nbsp;&nbsp;${0}</strong> <br />
       <strong>Final Score:&nbsp;&nbsp;${0} </strong> <br />
       <br />
       <strong id="solution">SOLUTION:</strong>
     </p>`;
+      clearInterval(intervalId);
       showModal(
         "You Win!",
         message,
         "Play Again",
         "Close",
-        restartGame,
+        reloadPage,
+        // restartGame,
         hideModal
       );
+      localStorage.setItem("gameAttempt", `${gameAttempt + 1}`);
+      localStorage.setItem("streakCount", `${streakCount + 1}`);
     } else {
       let message = `<p id="result">
       <strong>Attempts:&nbsp;&nbsp;${
         globalStore.attemptCount + 1
       } </strong> <br />
-      <strong>Final Time:&nbsp;&nbsp;${0} </strong> <br />
+      <strong>Final Time:&nbsp;&nbsp;${
+        time && time >= 0 ? time : 0
+      } </strong> <br />
       <strong>Hints Used:&nbsp;&nbsp;${0} </strong> <br />
       <strong>Final Score:&nbsp;&nbsp;${0} </strong> <br />
       <br />
       <strong id="solution">SOLUTION:</strong>
     </p>`;
+      clearInterval(intervalId);
       showModal(
         "You Lose!",
         message,
@@ -217,6 +260,9 @@ function handleCheck(secret, target) {
         reloadPage,
         hideModal
       );
+
+      localStorage.setItem("gameAttempt", `${gameAttempt + 1}`);
+      localStorage.setItem("streakCount", "0");
     }
   }
 }
@@ -224,26 +270,59 @@ function reloadPage() {
   location.reload();
 }
 function checkForFeedback(sequence, enteredSequence) {
-  let feedback = ["&nbsp;"];
-  enteredSequence.forEach((val, i) => {
-    if (val === sequence[i]) {
-      feedback.push(`🔴&nbsp;`);
-    } else if (sequence.includes(val)) {
-      feedback.push(`⚪&nbsp;`);
-    }
-  });
-  return feedback;
+  let duplicatesAllowed = localStorage.getItem("duplicatesAllowed")
+    ? JSON.parse(localStorage.getItem("duplicatesAllowed"))
+    : false;
+  if (duplicatesAllowed) {
+    let feedback = ["&nbsp;"];
+    let cache = {};
+    enteredSequence.forEach((val, i) => {
+      if (val === sequence[i]) {
+        feedback.push(`🔴&nbsp;`);
+        cache[val] = true;
+      } else if (!cache[val] && sequence.includes(val)) {
+        feedback.push(`⚪&nbsp;`);
+        cache[val] = true;
+      }
+      console.log("feedback", feedback);
+    });
+    return feedback;
+  } else {
+    let feedback = ["&nbsp;"];
+    enteredSequence.forEach((val, i) => {
+      if (val === sequence[i]) {
+        feedback.push(`🔴&nbsp;`);
+      } else if (sequence.includes(val)) {
+        feedback.push(`⚪&nbsp;`);
+      }
+    });
+
+    return feedback;
+  }
 }
 function restartGame(
   gameDifficulty,
   gameMode,
   hintsAllowed,
   timer,
-  duplicatesAllowed
+  duplicatesAllowed,
+  gameAttempt,
+  streakCount
 ) {
   $(`#bg-music`)[0].play();
 
+  let intervalId;
+  let time;
   hideModal();
+  if (timer && timer !== "none") {
+    time = JSON.parse(timer);
+    intervalId = setInterval(() => {
+      if (time >= 0) {
+        $(`#time`).text(time);
+        time--;
+      }
+    }, 1000);
+  }
   globalStore.attemptCount = 0;
   globalStore.colorInputCount = 0;
   globalStore.feedbacks = [];
@@ -260,8 +339,14 @@ function restartGame(
     while (counter < 10) {
       let checkId = globalStore.columnIds[counter];
       $(`button#check-${checkId}`).on("click", function (e) {
-        console.log("e.target", e.target);
-        handleCheck(secret, e.target);
+        handleCheck(
+          secret,
+          e.target,
+          time,
+          intervalId,
+          gameAttempt,
+          streakCount
+        );
       });
       counter++;
     }
@@ -313,6 +398,13 @@ $(function () {
   } else {
     duplicatesAllowed = "false";
   }
+  let gameAttempt = localStorage.getItem("gameAttempt")
+    ? Number(localStorage.getItem("gameAttempt"))
+    : 0;
+  let streakCount = localStorage.getItem("streakCount")
+    ? Number(localStorage.getItem("streakCount"))
+    : 0;
+
   let instructions = `<p>The player tries to decode the code generated by computer or another player.<br>
   The code can be made up of any combination of the colored pegs.<br>
   Each guess is made by placing a row of Code pegs on the unit.<br>
@@ -332,23 +424,38 @@ $(function () {
         gameMode,
         hintsAllowed,
         timer,
-        duplicatesAllowed
+        duplicatesAllowed,
+        gameAttempt,
+        streakCount
       ),
     hideModal
   );
+  let html1 = `Games Played: ${
+    localStorage.getItem("gameAttempt")
+      ? localStorage.getItem("gameAttempt")
+      : "0"
+  }`;
 
+  $(`#gameAttempt`).html(html1);
+  let html2 = `Win Streaks:  ${
+    localStorage.getItem("streakCount")
+      ? localStorage.getItem("streakCount")
+      : "0"
+  }`;
+
+  $(`#streakCount`).text(html2);
   $(`.settings-btn`).on("click", function (e) {
-    let $htmlContent = $(`<form id="modal-form >
-    <h6>Play Mode:</h6>
-    <input
-      type="radio"
-      class="btn-check"
-      name="gameMode"
-      id="two-player"
-      autocomplete="off"
+    let $htmlContent = $(`<form id="modal-form" >
+      <h6>Play Mode:</h6>
+        <input
+        type="radio"
+        class="btn-check"
+        name="gameMode"
+        id="twoPlayer"
+        autocomplete="off"
 
     />
-    <label class="btn btn-secondary" for="two-player"
+    <label class="btn btn-secondary" for="twoPlayer"
       >Player Vs Player</label
     >
     <input
@@ -503,8 +610,10 @@ $(function () {
     $(".modal-footer").html($(`<div></div>`));
     $(".modal").show();
     // ******************Adding Here *********************
+
     $(".btn-submit").on("click", function (e) {
       e.preventDefault();
+
       $(`.modal-body input`).each((i, field) => {
         if (field.checked) {
           if (field.id === "singlePlayer" || field.id === "twoPlayer") {
@@ -547,7 +656,9 @@ $(function () {
         gameMode,
         hintsAllowed,
         timer,
-        duplicatesAllowed
+        duplicatesAllowed,
+        gameAttempt,
+        streakCount
       );
 
       $(`.modal`).hide();
