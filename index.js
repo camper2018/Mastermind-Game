@@ -7,7 +7,7 @@ const globalStore = (function initGame() {
   let colorInputCount = 0;
   let selectedColors = [];
   const feedbacks = [];
-
+  let hintCount = 0;
   const columnIds = [
     "r1c1",
     "r1c2",
@@ -27,6 +27,7 @@ const globalStore = (function initGame() {
     colorInputCount,
     feedbacks,
     selectedColors,
+    hintCount,
   };
 })();
 
@@ -46,6 +47,31 @@ function renderPlacements(difficulty) {
   }
   return nums;
 }
+function handleHint(secret) {
+  let indx = globalStore.hintCount;
+  const colors = [
+    "ff0000ff",
+    "ff9900ff",
+    "ffff00ff",
+    "6aa84fff",
+    "0000ffff",
+    "9900ffff",
+    "ff00ffff",
+    "85200cff",
+  ];
+  if (indx < 3) {
+    let unUsedColors = colors.filter((color, i) => {
+      return !secret.includes(`#${color}`);
+    });
+    let id = unUsedColors[indx];
+    let button = $(`button#${id}.color-btns`);
+    $(button).prop("disabled", true);
+    globalStore.hintCount++;
+  } else {
+    $(`#btn-hint`).prop("disabled", true);
+  }
+}
+
 function getRandomColorSequence(sequence) {
   const colors = [
     "#ff0000ff",
@@ -118,21 +144,21 @@ function setGameDifficulty(difficulty) {
 }
 function createInputButtons(secret, gameAttempt, streakCount) {
   const colors = [
-    "#ff0000ff",
-    "#ff9900ff",
-    "#ffff00ff",
-    "#6aa84fff",
-    "#0000ffff",
-    "#9900ffff",
-    "#ff00ffff",
-    "#85200cff",
+    "ff0000ff",
+    "ff9900ff",
+    "ffff00ff",
+    "6aa84fff",
+    "0000ffff",
+    "9900ffff",
+    "ff00ffff",
+    "85200cff",
   ];
   let btnArray = [];
   colors.forEach((color, i) => {
     let $button = $(
       `<button id=${color} class="color-btns border rounded-circle border-2 d-flex justify-content-center align-items-center">Press</button>`
     );
-    $($button).css("background-color", color);
+    $($button).css("background-color", `#${color}`);
     btnArray.push($button);
   });
   $(`.input-btns-container`).html(btnArray);
@@ -151,9 +177,9 @@ function handleInput(event, secret) {
     let selectedColor = event.target.id;
     let colorPlacementId = globalStore.columnIds[globalStore.attemptCount];
     let placementId = colorPlacementId + globalStore.colorInputCount;
-    $(`#${placementId}`).css("background-color", selectedColor);
+    $(`#${placementId}`).css("background-color", `#${selectedColor}`);
     globalStore.colorInputCount++;
-    globalStore.selectedColors.push(selectedColor);
+    globalStore.selectedColors.push(`#${selectedColor}`);
   }
 }
 function handleCheck(
@@ -186,7 +212,7 @@ function handleCheck(
 
     let isDecoded = checkForMatch(globalStore.selectedColors, secret);
     let solutionHtml = displaySolution(secret);
-    if (globalStore.attemptCount < 2 && !isDecoded) {
+    if (globalStore.attemptCount < 9 && !isDecoded) {
       if (time <= 0) {
         let message = `<p id="result">
         <strong>Attempts:&nbsp;&nbsp;${
@@ -195,8 +221,12 @@ function handleCheck(
         <strong>Final Time:&nbsp;&nbsp;${
           time && time >= 0 ? time : 0
         } </strong> <br />
-        <strong>Hints Used:&nbsp;&nbsp;${0} </strong> <br />
-        <strong>Final Score:&nbsp;&nbsp;${0} </strong> <br />
+        <strong>Hints Used:&nbsp;&nbsp;${globalStore.hintCount} </strong> <br />
+        <strong>Final Score:&nbsp;&nbsp;${
+          calculateScore(time ? time : 0) >= 0
+            ? calculateScore(time ? time : 0)
+            : 0
+        } </strong> <br />
         <br />
         <strong id="solution">SOLUTION:</strong><br/>
         ${solutionHtml}
@@ -223,8 +253,12 @@ function handleCheck(
       <strong>Final Time:&nbsp;&nbsp;${
         time && time >= 0 ? time : 0
       } </strong> <br />
-      <strong>Hints Used:&nbsp;&nbsp;${0}</strong> <br />
-      <strong>Final Score:&nbsp;&nbsp;${0} </strong> <br />
+      <strong>Hints Used:&nbsp;&nbsp;${globalStore.hintCount}</strong> <br />
+      <strong>Final Score:&nbsp;&nbsp;${
+        calculateScore(time ? time : 0) >= 0
+          ? calculateScore(time ? time : 0)
+          : 0
+      } </strong> <br />
       <br />
       <strong id="solution">SOLUTION:</strong></br>
       ${solutionHtml}
@@ -249,8 +283,12 @@ function handleCheck(
       <strong>Final Time:&nbsp;&nbsp;${
         time && time >= 0 ? time : 0
       } </strong> <br />
-      <strong>Hints Used:&nbsp;&nbsp;${0} </strong> <br />
-      <strong>Final Score:&nbsp;&nbsp;${0} </strong> <br />
+      <strong>Hints Used:&nbsp;&nbsp;${globalStore.hintCount} </strong> <br />
+      <strong>Final Score:&nbsp;&nbsp;${
+        calculateScore(time ? time : 0) >= 0
+          ? calculateScore(time ? time : 0)
+          : 0
+      } </strong> <br />
       <br />
       <strong id="solution">SOLUTION: </strong><br/>
       ${solutionHtml}
@@ -326,6 +364,10 @@ function restartGame(
       }
     }, 1000);
   }
+
+  if (!hintsAllowed) {
+    $(`#btn-hint`).prop("disabled", true);
+  }
   globalStore.attemptCount = 0;
   globalStore.colorInputCount = 0;
   globalStore.feedbacks = [];
@@ -337,6 +379,10 @@ function restartGame(
     setGameDifficulty(gameDifficulty);
     // create colored buttons dynamically
     createInputButtons(secret);
+    // add click handler to hint button
+    $(`#btn-hint`).on("click", function (e) {
+      handleHint(secret);
+    });
     // attach click handler to the check buttons
     let counter = 0;
     while (counter < 10) {
@@ -391,7 +437,7 @@ $(function () {
 
   let hintsAllowed;
   if (localStorage.getItem("hintsAllowed")) {
-    hintsAllowed = localStorage.getItem("hintsAllowed");
+    hintsAllowed = JSON.parse(localStorage.getItem("hintsAllowed"));
   } else {
     hintsAllowed = "false";
   }
@@ -448,7 +494,7 @@ $(function () {
   }`;
 
   $(`#gameAttempt`).html(html1);
-  let html2 = `Win Streaks:  ${
+  let html2 = `Win Streak:  ${
     localStorage.getItem("streakCount")
       ? localStorage.getItem("streakCount")
       : "0"
@@ -678,7 +724,21 @@ $(function () {
   });
 });
 
-function calculateScore() {
+function calculateScore(timeLeft) {
+  console.log(
+    "time:",
+    timeLeft,
+    "attemptCount:",
+    globalStore.attemptCount,
+    "hints:",
+    globalStore.hintCount
+  );
+  let total =
+    1000 -
+    100 * globalStore.attemptCount +
+    5 * timeLeft -
+    100 * globalStore.hintCount;
+  return total;
   // based on number of attempts used
   // based on number of hints used (optional)
   // based on difficulty level

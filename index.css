@@ -123,7 +123,10 @@
 .color-btns:hover {
   opacity: 0.5;
 }
-#btn-hints {
+.color-btns:disabled {
+  opacity: 0;
+}
+#btn-hint {
   margin: 0;
   color: white;
   background-color: orange;
@@ -131,9 +134,16 @@
   font-family: "Spectral", serif;
   font-weight: bold;
 }
-#btn-hints:hover {
+#btn-hint:hover {
   background-color: white;
   color: #1c4587ff;
+}
+#btn-hint:disabled {
+  background-color: grey;
+}
+#btn-hint:disabled:hover {
+  color: white;
+  background-color: grey;
 }
 .display-solution {
   display: flex;
