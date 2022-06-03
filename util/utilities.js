@@ -109,7 +109,7 @@ export function setGameDifficulty(difficulty) {
     colsPerAttempt = [];
   });
 }
-export function createInputButtons(secret, gameAttempt, streakCount) {
+export function createInputButtons(secret) {
   const colors = [
     "ff0000ff",
     "ff9900ff",
@@ -154,6 +154,7 @@ export function handleCheck(
   target,
   time,
   intervalId,
+  gameMode,
   gameAttempt,
   streakCount
 ) {
@@ -206,6 +207,10 @@ export function handleCheck(
           reloadPage,
           hideModal
         );
+        if (gameMode === "singlePlayer") {
+          localStorage.setItem("gameAttempt", `${gameAttempt + 1}`);
+          localStorage.setItem("streakCount", `${streakCount + 1}`);
+        }
       } else {
         globalStore.attemptCount++;
         globalStore.colorInputCount = 0;
@@ -236,11 +241,12 @@ export function handleCheck(
         "Play Again",
         "Close",
         reloadPage,
-        // restartGame,
         hideModal
       );
-      localStorage.setItem("gameAttempt", `${gameAttempt + 1}`);
-      localStorage.setItem("streakCount", `${streakCount + 1}`);
+      if (gameMode === "singlePlayer") {
+        localStorage.setItem("gameAttempt", `${gameAttempt + 1}`);
+        localStorage.setItem("streakCount", `${streakCount + 1}`);
+      }
     } else {
       let message = `<p id="result">
       <strong>Attempts:&nbsp;&nbsp;${
@@ -268,9 +274,10 @@ export function handleCheck(
         reloadPage,
         hideModal
       );
-
-      localStorage.setItem("gameAttempt", `${gameAttempt + 1}`);
-      localStorage.setItem("streakCount", "0");
+      if (gameMode === "singlePlayer") {
+        localStorage.setItem("gameAttempt", `${gameAttempt + 1}`);
+        localStorage.setItem("streakCount", "0");
+      }
     }
   }
 }
@@ -344,7 +351,7 @@ export function restartGame(
     // create positions for code in each column based on difficulty
     setGameDifficulty(gameDifficulty);
     // create colored buttons dynamically
-    createInputButtons(secret);
+    createInputButtons(secret, gameAttempt, streakCount);
     // add click handler to hint button
     $(`#btn-hint`).on("click", function (e) {
       handleHint(secret);
@@ -359,6 +366,7 @@ export function restartGame(
           e.target,
           time,
           intervalId,
+          gameMode,
           gameAttempt,
           streakCount
         );
@@ -437,7 +445,7 @@ export function restartGame2Player(hintsAllowed, timer, secret) {
   while (counter < 10) {
     let checkId = globalStore.columnIds[counter];
     $(`button#check-${checkId}`).on("click", function (e) {
-      handleCheck(secret, e.target, time, intervalId, gameAttempt, streakCount);
+      handleCheck(secret, e.target, time, intervalId);
     });
     counter++;
   }
@@ -513,7 +521,13 @@ export function createSecret(hintsAllowed, timer) {
         }
       }
     });
-  restartGame2Player(hintsAllowed, timer, globalStore.createdSecret);
+  restartGame2Player(
+    hintsAllowed,
+    timer,
+    globalStore.createdSecret,
+    gameAttempt,
+    streakCount
+  );
 }
 export function calculateScore(timeLeft) {
   let total =

@@ -49,14 +49,14 @@ $(function () {
       <div class="form-group">
       <label for="color-pick-1">Pick Your First Color</label>
       <select class="form-control" id="color-pick-1">
-        <option value="red">Red</option>
-        <option value="orange">Orange</option>
-        <option value="yellow">Yellow</option>
-        <option value="green">Green</option>
-        <option value="blue">Blue</option>
-        <option value="purple">Purple</option>
-        <option value="pink">Pink</option>
-        <option value="brown">Brown</option>
+        <option  value="red">Red</option>
+        <option  value="orange">Orange</option>
+        <option  value="yellow">Yellow</option>
+        <option  value="green">Green</option>
+        <option  value="blue">Blue</option>
+        <option  value="purple">Purple</option>
+        <option  value="pink">Pink</option>
+        <option  value="brown">Brown</option>
 
       </select>
       <label for="color-pick-2">Pick Your Second Color</label>
